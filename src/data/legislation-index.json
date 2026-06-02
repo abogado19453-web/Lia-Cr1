@@ -1,0 +1,262 @@
+{
+  "legislation": [
+    {
+      "id": "codigo-civil-cr",
+      "titulo": "Código Civil de Costa Rica",
+      "tipo": "codigo",
+      "Estado": "vigente",
+      "vigenciaDesde": "1887",
+      "descripcion": "Ordenamiento base del derecho civil costarricense",
+      "capitulos": [
+        {
+          "numero": 1,
+          "titulo": "De las personas naturales",
+          "articulos": "1-155"
+        },
+        {
+          "numero": 2,
+          "titulo": "Del domicilio",
+          "articulos": "156-184"
+        },
+        {
+          "numero": 3,
+          "titulo": "De los derechos personales",
+          "articulos": "185-195"
+        },
+        {
+          "numero": 4,
+          "titulo": "De los actos y hechos juridicos",
+          "articulos": "196-254"
+        },
+        {
+          "numero": 5,
+          "titulo": "De los derechos reales",
+          "articulos": "255-633"
+        },
+        {
+          "numero": 6,
+          "titulo": "De la familia y del matrimonio",
+          "articulos": "634-1031"
+        }
+      ],
+      "fuente": "https://scij.poder-judicial.go.cr/",
+      "ultimaActualizacion": "2024"
+    },
+    {
+      "id": "codigo-penal-cr",
+      "titulo": "Código Penal de Costa Rica",
+      "tipo": "codigo",
+      "estado": "vigente",
+      "vigenciaDesde": "1970",
+      "descripcion": "Ordenamiento que define delitos y penas en Costa Rica",
+      "libros": [
+        {
+          "numero": 1,
+          "titulo": "Disposiciones generales",
+          "articulos": "1-96"
+        },
+        {
+          "numero": 2,
+          "titulo": "Delitos contra la persona",
+          "articulos": "97-292"
+        },
+        {
+          "numero": 3,
+          "titulo": "Delitos contra la propiedad",
+          "articulos": "293-410"
+        },
+        {
+          "numero": 4,
+          "titulo": "Delitos contra el estado",
+          "articulos": "411-475"
+        }
+      ],
+      "fuente": "https://scij.poder-judicial.go.cr/",
+      "ultimaActualizacion": "2024"
+    },
+    {
+      "id": "codigo-procedimiento-civil-cr",
+      "titulo": "Código de Procedimiento Civil de Costa Rica",
+      "tipo": "codigo",
+      "estado": "vigente",
+      "vigenciaDesde": "1888",
+      "descripcion": "Regula los procedimientos civiles ante los tribunales",
+      "partes": [
+        {
+          "numero": 1,
+          "titulo": "Disposiciones generales",
+          "articulos": "1-46"
+        },
+        {
+          "numero": 2,
+          "titulo": "De los actos procesales",
+          "articulos": "47-165"
+        },
+        {
+          "numero": 3,
+          "titulo": "De los juicios ordinarios",
+          "articulos": "166-362"
+        }
+      ],
+      "fuente": "https://scij.poder-judicial.go.cr/",
+      "ultimaActualizacion": "2024"
+    },
+    {
+      "id": "codigo-familia-cr",
+      "titulo": "Código de Familia de Costa Rica",
+      "tipo": "codigo",
+      "estado": "vigente",
+      "vigenciaDesde": "1974",
+      "descripcion": "Regula las relaciones familiares, matrimonio, divorcio, custodia",
+      "libros": [
+        {
+          "numero": 1,
+          "titulo": "Del matrimonio",
+          "articulos": "1-92"
+        },
+        {
+          "numero": 2,
+          "titulo": "De la filiación",
+          "articulos": "93-181"
+        },
+        {
+          "numero": 3,
+          "titulo": "De la patria potestad y la tutela",
+          "articulos": "182-304"
+        },
+        {
+          "numero": 4,
+          "titulo": "De las sucesiones",
+          "articulos": "305-534"
+        }
+      ],
+      "fuente": "https://scij.poder-judicial.go.cr/",
+      "ultimaActualizacion": "2024"
+    },
+    {
+      "id": "codigo-trabajo-cr",
+      "titulo": "Código de Trabajo de Costa Rica",
+      "tipo": "codigo",
+      "estado": "vigente",
+      "vigenciaDesde": "1943",
+      "descripcion": "Regula las relaciones laborales y derechos de trabajadores",
+      "titulos": [
+        {
+          "numero": 1,
+          "titulo": "Disposiciones generales",
+          "articulos": "1-38"
+        },
+        {
+          "numero": 2,
+          "titulo": "Del contrato de trabajo",
+          "articulos": "39-102"
+        },
+        {
+          "numero": 3,
+          "titulo": "De los salarios y prestaciones",
+          "articulos": "103-189"
+        },
+        {
+          "numero": 4,
+          "titulo": "Del despido",
+          "articulos": "190-234"
+        }
+      ],
+      "fuente": "https://scij.poder-judicial.go.cr/",
+      "ultimaActualizacion": "2024"
+    },
+    {
+      "id": "codigo-comercio-cr",
+      "titulo": "Código de Comercio de Costa Rica",
+      "tipo": "codigo",
+      "estado": "vigente",
+      "vigenciaDesde": "1902",
+      "descripcion": "Regula los actos mercantiles y sociedades comerciales",
+      "libros": [
+        {
+          "numero": 1,
+          "titulo": "De los comerciantes",
+          "articulos": "1-69"
+        },
+        {
+          "numero": 2,
+          "titulo": "De las sociedades mercantiles",
+          "articulos": "70-306"
+        },
+        {
+          "numero": 3,
+          "titulo": "De los actos mercantiles",
+          "articulos": "307-409"
+        }
+      ],
+      "fuente": "https://scij.poder-judicial.go.cr/",
+      "ultimaActualizacion": "2024"
+    },
+    {
+      "id": "constitucion-politica-cr",
+      "titulo": "Constitución Política de Costa Rica",
+      "tipo": "constitucion",
+      "estado": "vigente",
+      "vigenciaDesde": "1949",
+      "descripcion": "Ley fundamental de la república costarricense",
+      "capitulos": [
+        {
+          "numero": 1,
+          "titulo": "Garantías fundamentales",
+          "articulos": "1-39"
+        },
+        {
+          "numero": 2,
+          "titulo": "Derechos sociales",
+          "articulos": "40-73"
+        },
+        {
+          "numero": 3,
+          "titulo": "Poder legislativo",
+          "articulos": "74-130"
+        },
+        {
+          "numero": 4,
+          "titulo": "Poder ejecutivo",
+          "articulos": "131-172"
+        },
+        {
+          "numero": 5,
+          "titulo": "Poder judicial",
+          "articulos": "173-191"
+        }
+      ],
+      "fuente": "https://scij.poder-judicial.go.cr/",
+      "ultimaActualizacion": "2024"
+    },
+    {
+      "id": "ley-procedimiento-administrativo-cr",
+      "titulo": "Ley de Procedimiento Administrativo de Costa Rica",
+      "tipo": "ley",
+      "estado": "vigente",
+      "vigenciaDesde": "1927",
+      "descripcion": "Regula los procedimientos ante autoridades administrativas",
+      "capitulos": [
+        {
+          "numero": 1,
+          "titulo": "Disposiciones generales",
+          "articulos": "1-29"
+        },
+        {
+          "numero": 2,
+          "titulo": "De los actos administrativos",
+          "articulos": "30-86"
+        }
+      ],
+      "fuente": "https://scij.poder-judicial.go.cr/",
+      "ultimaActualizacion": "2024"
+    }
+  ],
+  "fuentes": {
+    "scij": "https://scij.poder-judicial.go.cr/",
+    "poder_judicial": "https://www.poder-judicial.go.cr/",
+    "asamblea_legislativa": "https://www.asamblea.go.cr/",
+    "registro_nacional": "https://www.registronacional.go.cr/"
+  },
+  "actualizacionUltima": "2024-06-02"
+}
