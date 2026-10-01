@@ -38,14 +38,24 @@ if (existe('.env')) {
   info(`Modelo: ${(env.CLAUDE_MODEL || '').replace(/"/g, '') || 'claude-opus-5-5 (predeterminado)'}`);
 }
 
-titulo('3. Conexión con Anthropic');
+titulo('3. Variables del sistema');
+for (const v of ['ANTHROPIC_BASE_URL', 'ANTHROPIC_AUTH_TOKEN', 'ANTHROPIC_API_KEY']) {
+  const val = process.env[v];
+  if (!val) ok(`${v} no está definida en el sistema`);
+  else if (v === 'ANTHROPIC_BASE_URL') {
+    let host = val; try { host = new URL(val).host; } catch {}
+    mal(`${v} está definida en el sistema (${host}). LexCR la ignora desde esta versión; antes desviaba las consultas.`);
+  } else mal(`${v} está definida en el sistema. LexCR la ignora y usa la clave del archivo .env.`);
+}
+
+titulo('4. Conexión con Anthropic (api.anthropic.com)');
 const clave = (env.ANTHROPIC_API_KEY ?? '').replace(/^["']|["']$/g, '').trim();
 const modelo = (env.CLAUDE_MODEL || '').replace(/"/g, '') || 'claude-opus-5-5';
 if (!clave) info('Omitida: no hay clave.');
 else if (!existe('node_modules/@anthropic-ai/sdk')) info('Omitida: faltan dependencias (ejecute «Iniciar LexCR»).');
 else {
   const { default: Anthropic } = await import('@anthropic-ai/sdk');
-  const client = new Anthropic({ apiKey: clave, maxRetries: 0, timeout: 60_000 });
+  const client = new Anthropic({ apiKey: clave, authToken: null, baseURL: 'https://api.anthropic.com', maxRetries: 0, timeout: 60_000 });
   const probar = async (nombre, params) => {
     try {
       const r = await client.beta.messages.create({ model: modelo, max_tokens: 64, messages: [{ role: 'user', content: 'Responda solo: listo' }], ...params });
@@ -67,7 +77,7 @@ else {
   await probar('Consulta con respaldo ante rechazos', { betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' });
 }
 
-titulo('4. Servidor local');
+titulo('5. Servidor local');
 try {
   const r = await fetch('http://localhost:3000/ingresar', { signal: AbortSignal.timeout(3000) });
   ok(`LexCR responde en http://localhost:3000 (HTTP ${r.status})`);

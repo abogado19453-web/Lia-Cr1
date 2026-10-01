@@ -3,6 +3,8 @@
 # Uso:  bash iniciar.sh
 set -euo pipefail
 cd "$(dirname "$0")"
+# Variables de otras herramientas que desviarían las consultas de IA; LexCR usa su archivo .env.
+unset ANTHROPIC_BASE_URL ANTHROPIC_AUTH_TOKEN ANTHROPIC_API_KEY
 
 echo "== LexCR =="
 

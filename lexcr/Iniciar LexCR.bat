@@ -1,6 +1,9 @@
 @echo off
 cd /d "%~dp0"
 title LexCR
+set ANTHROPIC_BASE_URL=
+set ANTHROPIC_AUTH_TOKEN=
+set ANTHROPIC_API_KEY=
 echo == LexCR ==
 
 where node >nul 2>nul

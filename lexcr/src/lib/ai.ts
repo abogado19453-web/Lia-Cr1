@@ -30,7 +30,13 @@ export function claude() {
   if (!process.env.ANTHROPIC_API_KEY) {
     throw new Error('ANTHROPIC_API_KEY no está configurada en el archivo .env.');
   }
-  cliente ??= new Anthropic();
+  // Se fija la dirección oficial: una variable ANTHROPIC_BASE_URL del sistema (definida por otras
+  // herramientas) desviaría las consultas a otro servidor. LEXCR_ANTHROPIC_BASE_URL permite cambiarla a propósito.
+  cliente ??= new Anthropic({
+    apiKey: process.env.ANTHROPIC_API_KEY,
+    authToken: null,
+    baseURL: process.env.LEXCR_ANTHROPIC_BASE_URL || 'https://api.anthropic.com',
+  });
   return cliente;
 }
 
