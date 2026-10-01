@@ -1,0 +1,170 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Despacho {
+  id            String         @id @default(cuid())
+  nombre        String
+  createdAt     DateTime       @default(now())
+  usuarios      Usuario[]
+  clientes      Cliente[]
+  expedientes   Expediente[]
+  documentos    Documento[]
+  escrituras    Escritura[]
+  alertas       Alerta[]
+  conversaciones Conversacion[]
+  resoluciones  Resolucion[]
+}
+
+model Usuario {
+  id           String   @id @default(cuid())
+  despachoId   String
+  despacho     Despacho @relation(fields: [despachoId], references: [id], onDelete: Cascade)
+  nombre       String
+  email        String   @unique
+  passwordHash String
+  rol          String   @default("miembro") // administrador | miembro
+  carne        String?
+  createdAt    DateTime @default(now())
+  conversaciones Conversacion[]
+  actuaciones  Actuacion[]
+}
+
+model Cliente {
+  id          String       @id @default(cuid())
+  despachoId  String
+  despacho    Despacho     @relation(fields: [despachoId], references: [id], onDelete: Cascade)
+  nombre      String
+  cedula      String?
+  email       String?
+  telefono    String?
+  portalToken String?      @unique
+  createdAt   DateTime     @default(now())
+  expedientes Expediente[]
+}
+
+model Expediente {
+  id          String      @id @default(cuid())
+  despachoId  String
+  despacho    Despacho    @relation(fields: [despachoId], references: [id], onDelete: Cascade)
+  clienteId   String?
+  cliente     Cliente?    @relation(fields: [clienteId], references: [id], onDelete: SetNull)
+  numero      String
+  titulo      String
+  materia     String
+  despachoJudicial String?
+  contraparte String?
+  estado      String      @default("activo") // activo | suspendido | archivado
+  descripcion String?
+  visiblePortal Boolean   @default(false)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  actuaciones Actuacion[]
+  alertas     Alerta[]
+  documentos  Documento[]
+}
+
+model Actuacion {
+  id           String     @id @default(cuid())
+  expedienteId String
+  expediente   Expediente @relation(fields: [expedienteId], references: [id], onDelete: Cascade)
+  usuarioId    String?
+  usuario      Usuario?   @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+  fecha        DateTime
+  descripcion  String
+  visiblePortal Boolean   @default(false)
+  createdAt    DateTime   @default(now())
+}
+
+model Alerta {
+  id           String      @id @default(cuid())
+  despachoId   String
+  despacho     Despacho    @relation(fields: [despachoId], references: [id], onDelete: Cascade)
+  expedienteId String?
+  expediente   Expediente? @relation(fields: [expedienteId], references: [id], onDelete: Cascade)
+  titulo       String
+  fechaVence   DateTime
+  tipo         String      @default("plazo") // plazo | audiencia | vencimiento | recordatorio
+  completada   Boolean     @default(false)
+  createdAt    DateTime    @default(now())
+}
+
+model Documento {
+  id           String      @id @default(cuid())
+  despachoId   String
+  despacho     Despacho    @relation(fields: [despachoId], references: [id], onDelete: Cascade)
+  expedienteId String?
+  expediente   Expediente? @relation(fields: [expedienteId], references: [id], onDelete: SetNull)
+  nombre       String
+  tipo         String      // subido | generado
+  clase        String?     // escritura | contrato | procesal | otro (generados)
+  mime         String?
+  ruta         String?     // archivo en disco (subidos)
+  contenido    String?     // texto (generados o extraído)
+  tamano       Int?
+  visiblePortal Boolean    @default(false)
+  analisis     String?
+  createdAt    DateTime    @default(now())
+}
+
+model Escritura {
+  id          String   @id @default(cuid())
+  despachoId  String
+  despacho    Despacho @relation(fields: [despachoId], references: [id], onDelete: Cascade)
+  numero      Int
+  tomo        Int
+  folioInicio String
+  folioFin    String?
+  fecha       DateTime
+  acto        String
+  otorgantes  String
+  valor       String?
+  estadoRegistral String @default("no_aplica") // no_aplica | pendiente | presentado | inscrito | defectuoso
+  presentacion String?
+  notas       String?
+  createdAt   DateTime @default(now())
+
+  @@unique([despachoId, tomo, numero])
+}
+
+model Resolucion {
+  id         String   @id @default(cuid())
+  despachoId String
+  despacho   Despacho @relation(fields: [despachoId], references: [id], onDelete: Cascade)
+  numero     String
+  tribunal   String
+  fecha      DateTime?
+  materia    String?
+  tema       String
+  extracto   String
+  enlace     String?
+  createdAt  DateTime @default(now())
+}
+
+model Conversacion {
+  id         String    @id @default(cuid())
+  despachoId String
+  despacho   Despacho  @relation(fields: [despachoId], references: [id], onDelete: Cascade)
+  usuarioId  String
+  usuario    Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  titulo     String
+  modo       String    @default("consulta") // consulta | jurisprudencia
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  mensajes   Mensaje[]
+}
+
+model Mensaje {
+  id             String       @id @default(cuid())
+  conversacionId String
+  conversacion   Conversacion @relation(fields: [conversacionId], references: [id], onDelete: Cascade)
+  rol            String       // user | assistant
+  contenido      String
+  fuentes        String?      // JSON con citas web
+  createdAt      DateTime     @default(now())
+}
