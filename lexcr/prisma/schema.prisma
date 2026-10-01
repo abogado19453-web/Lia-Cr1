@@ -10,8 +10,12 @@ datasource db {
 model Despacho {
   id            String         @id @default(cuid())
   nombre        String
+  plan          String         @default("gratis") // gratis | profesional | despacho
+  planVence     DateTime?
   createdAt     DateTime       @default(now())
   usuarios      Usuario[]
+  usosIA        UsoIA[]
+  pagos         Pago[]
   clientes      Cliente[]
   expedientes   Expediente[]
   documentos    Documento[]
@@ -167,4 +171,39 @@ model Mensaje {
   contenido      String
   fuentes        String?      // JSON con citas web
   createdAt      DateTime     @default(now())
+}
+
+model UsoIA {
+  id         String   @id @default(cuid())
+  despachoId String
+  despacho   Despacho @relation(fields: [despachoId], references: [id], onDelete: Cascade)
+  usuarioId  String?
+  tipo       String   // consulta | jurisprudencia | redaccion | analisis
+  createdAt  DateTime @default(now())
+
+  @@index([despachoId, createdAt])
+}
+
+model Pago {
+  id            String    @id @default(cuid())
+  despachoId    String
+  despacho      Despacho  @relation(fields: [despachoId], references: [id], onDelete: Cascade)
+  usuarioId     String?
+  plan          String
+  periodo       String    // mensual | anual
+  monto         Int       // en la unidad de la moneda (colones)
+  moneda        String    @default("CRC")
+  metodo        String    // sinpe | transferencia | tarjeta
+  estado        String    @default("pendiente") // pendiente | aprobado | rechazado
+  referencia    String?
+  comprobante   String?   // ruta del archivo
+  stripeSession String?   @unique
+  notas         String?
+  revisadoPor   String?
+  revisadoEn    DateTime?
+  vigenteDesde  DateTime?
+  vigenteHasta  DateTime?
+  createdAt     DateTime  @default(now())
+
+  @@index([estado, createdAt])
 }

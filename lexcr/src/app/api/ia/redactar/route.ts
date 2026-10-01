@@ -1,7 +1,8 @@
 import { cookies } from 'next/headers';
 import { z } from 'zod';
-import { generar, respuestaStream } from '@/lib/ai';
+import { generar, iaNoConfigurada, respuestaStream } from '@/lib/ai';
 import { SESSION_COOKIE, verificarSesion } from '@/lib/session';
+import { consumirIA } from '@/lib/suscripcion';
 
 const Body = z.object({
   clase: z.enum(['escritura', 'contrato', 'procesal', 'otro']),
@@ -23,6 +24,10 @@ export async function POST(req: Request) {
   const p = Body.safeParse(await req.json().catch(() => null));
   if (!p.success) return Response.json({ error: 'Solicitud inválida' }, { status: 400 });
   const { clase, tipo, datos, instrucciones } = p.data;
+  const sinIA = iaNoConfigurada();
+  if (sinIA) return sinIA;
+  const limite = await consumirIA(s.did, s.uid, 'redaccion');
+  if (limite) return Response.json({ error: limite }, { status: 402 });
 
   const pedido = `Clase de documento: ${CLASES[clase]}
 Tipo: ${tipo}

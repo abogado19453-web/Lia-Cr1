@@ -1,8 +1,9 @@
 import { cookies } from 'next/headers';
 import { z } from 'zod';
-import { generar, respuestaStream } from '@/lib/ai';
+import { generar, iaNoConfigurada, respuestaStream } from '@/lib/ai';
 import { prisma } from '@/lib/db';
 import { SESSION_COOKIE, verificarSesion } from '@/lib/session';
+import { consumirIA } from '@/lib/suscripcion';
 
 const Body = z.object({ documentoId: z.string(), enfoque: z.string().max(4000).optional() });
 const MAX_CHARS = 400_000;
@@ -21,6 +22,11 @@ export async function POST(req: Request) {
   if (doc.contenido.length > MAX_CHARS) {
     return Response.json({ error: 'El documento excede el tamaño máximo de análisis. Divídalo en partes.' }, { status: 413 });
   }
+
+  const sinIA = iaNoConfigurada();
+  if (sinIA) return sinIA;
+  const limite = await consumirIA(s.did, s.uid, 'analisis');
+  if (limite) return Response.json({ error: limite }, { status: 402 });
 
   const pedido = `Documento: ${doc.nombre}
 ${p.data.enfoque ? `Enfoque solicitado: ${p.data.enfoque}\n` : ''}

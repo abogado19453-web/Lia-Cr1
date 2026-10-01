@@ -6,6 +6,7 @@ import { requireUser } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { extraerTexto } from '@/lib/extract';
 import { borrarArchivo, guardarArchivo } from '@/lib/storage';
+import { puedeSubir } from '@/lib/suscripcion';
 
 const MAX_BYTES = 20 * 1024 * 1024;
 
@@ -20,6 +21,8 @@ export async function subirDocumento(_: unknown, fd: FormData): Promise<{ error?
   const archivo = fd.get('archivo');
   if (!(archivo instanceof File) || !archivo.size) return { error: 'Seleccione un archivo.' };
   if (archivo.size > MAX_BYTES) return { error: 'El archivo excede 20 MB.' };
+  const limite = await puedeSubir(user.despachoId, archivo.size);
+  if (limite) return { error: limite };
   const buf = Buffer.from(await archivo.arrayBuffer());
   const ruta = await guardarArchivo(user.despachoId, archivo.name, buf);
   let contenido: string | null = null;

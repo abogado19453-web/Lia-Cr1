@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { requireAdmin } from '@/lib/auth';
 import { prisma } from '@/lib/db';
+import { puedeAgregarUsuario } from '@/lib/suscripcion';
 
 const Miembro = z.object({
   nombre: z.string().trim().min(3, 'Indique el nombre.'),
@@ -19,6 +20,8 @@ export async function agregarMiembro(_: unknown, fd: FormData): Promise<{ error?
   const p = Miembro.safeParse(Object.fromEntries(fd));
   if (!p.success) return { error: p.error.issues[0].message };
   if (await prisma.usuario.findUnique({ where: { email: p.data.email } })) return { error: 'Ese correo ya está registrado.' };
+  const limite = await puedeAgregarUsuario(admin.despachoId);
+  if (limite) return { error: limite };
   await prisma.usuario.create({
     data: {
       despachoId: admin.despachoId,

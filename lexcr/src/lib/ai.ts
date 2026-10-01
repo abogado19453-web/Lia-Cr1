@@ -15,6 +15,13 @@ export const DOMINIOS_OFICIALES = [
   'asamblea.go.cr',
 ];
 
+/** Respuesta 503 si la IA no está configurada; se evalúa antes de descontar cupo. */
+export function iaNoConfigurada() {
+  return process.env.ANTHROPIC_API_KEY
+    ? null
+    : Response.json({ error: 'ANTHROPIC_API_KEY no está configurada en el archivo .env.' }, { status: 503 });
+}
+
 let cliente: Anthropic | null = null;
 export function claude() {
   if (!process.env.ANTHROPIC_API_KEY) {

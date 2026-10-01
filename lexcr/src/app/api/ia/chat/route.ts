@@ -1,9 +1,10 @@
 import type Anthropic from '@anthropic-ai/sdk';
 import { cookies } from 'next/headers';
 import { z } from 'zod';
-import { generar, respuestaStream } from '@/lib/ai';
+import { generar, iaNoConfigurada, respuestaStream } from '@/lib/ai';
 import { prisma } from '@/lib/db';
 import { SESSION_COOKIE, verificarSesion } from '@/lib/session';
+import { consumirIA } from '@/lib/suscripcion';
 
 const Body = z.object({
   conversacionId: z.string().optional(),
@@ -17,6 +18,14 @@ export async function POST(req: Request) {
   const p = Body.safeParse(await req.json().catch(() => null));
   if (!p.success) return Response.json({ error: 'Solicitud inválida' }, { status: 400 });
   const { mensaje, modo } = p.data;
+
+  const existente = p.data.conversacionId
+    ? await prisma.conversacion.findFirst({ where: { id: p.data.conversacionId, usuarioId: s.uid }, select: { modo: true } })
+    : null;
+  const sinIA = iaNoConfigurada();
+  if (sinIA) return sinIA;
+  const limite = await consumirIA(s.did, s.uid, (existente?.modo ?? modo) === 'jurisprudencia' ? 'jurisprudencia' : 'consulta');
+  if (limite) return Response.json({ error: limite }, { status: 402 });
 
   let conv = p.data.conversacionId
     ? await prisma.conversacion.findFirst({

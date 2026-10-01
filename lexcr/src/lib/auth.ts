@@ -19,3 +19,11 @@ export async function requireAdmin() {
   if (user.rol !== 'administrador') redirect('/dashboard');
   return user;
 }
+
+/** Administrador de la plataforma (PLATFORM_ADMIN_EMAILS). */
+export async function requirePlatformAdmin() {
+  const { esAdminPlataforma } = await import('./suscripcion');
+  const user = await requireUser();
+  if (!esAdminPlataforma(user.email)) redirect('/dashboard');
+  return user;
+}

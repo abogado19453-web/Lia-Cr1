@@ -19,8 +19,22 @@ Plataforma web para despachos legales y notariales de Costa Rica. **LexCR** es u
 | **Redactor Legal** | Escrituras en formato de protocolo (texto corrido, cantidades en letras), contratos y escritos procesales, con marcadores `[Insertar …]`. Las escrituras se exportan a Word con numeración de líneas por página |
 | **Equipo** | Alta de miembros y roles (administrador y miembro) |
 | **Ajustes** | Perfil, carné, nombre del despacho y contraseña |
+| **Mi plan** | Plan vigente, consumo del mes (IA, usuarios, almacenamiento), «Mejorar mi plan», pagos por SINPE Móvil, transferencia o tarjeta, historial y recibos |
+| **Plataforma** | Solo para el dueño de la plataforma: verificación de pagos con comprobante, asignación manual de planes y resumen de despachos e ingresos |
 
 Cada despacho es independiente: sus usuarios solo acceden a los datos de su propio despacho.
+
+## Planes y cobro
+
+Los planes (Gratis, Profesional y Despacho), sus precios en colones y sus límites se definen en `src/lib/planes.ts`; el pago anual equivale a diez meses. Al vencer un plan, el despacho conserva todos sus datos y pasa a operar con los límites del plan Gratis.
+
+| Método | Configuración | Activación |
+| --- | --- | --- |
+| SINPE Móvil | `PAGO_SINPE_NUMERO`, `PAGO_TITULAR` | El cliente reporta el comprobante; un administrador lo aprueba en «Plataforma» |
+| Transferencia | `PAGO_IBAN`, `PAGO_TITULAR` | Igual que SINPE |
+| Tarjeta (Stripe) | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` | Automática al confirmarse el cobro (webhook `{APP_URL}/api/stripe/webhook`) |
+
+Los correos de `PLATFORM_ADMIN_EMAILS` ven el menú «Plataforma». Los métodos sin configurar no se ofrecen. El recibo que emite la plataforma no sustituye la factura electrónica de Hacienda.
 
 ## Tecnología
 

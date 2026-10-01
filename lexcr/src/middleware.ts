@@ -14,4 +14,4 @@ export async function middleware(req: NextRequest) {
   return NextResponse.next();
 }
 
-export const config = { matcher: ['/dashboard/:path*', '/api/ia/:path*', '/api/documentos/:path*', '/api/protocolo/:path*'] };
+export const config = { matcher: ['/dashboard/:path*', '/api/ia/:path*', '/api/documentos/:path*', '/api/protocolo/:path*', '/api/pagos/:path*'] };
