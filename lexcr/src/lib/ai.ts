@@ -89,23 +89,35 @@ export async function* generar(
       ? [{ type: 'web_search_20260209', name: 'web_search', max_uses: 8, allowed_domains: DOMINIOS_OFICIALES }]
       : [];
 
-  for (let vuelta = 0; vuelta < 4; vuelta++) {
+  // El respaldo del servidor ante rechazos es una función beta; si la cuenta no la admite
+  // (error 400 antes de recibir texto), se repite la solicitud sin ella.
+  let conRespaldo = true;
+  for (let vuelta = 0; vuelta < 5; vuelta++) {
     const stream = client.beta.messages.stream({
       model: MODELO,
       max_tokens: opciones.maxTokens ?? 32000,
-      betas: ['server-side-fallback-2026-07-01'],
-      fallbacks: 'default',
+      ...(conRespaldo ? { betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' as const } : {}),
       output_config: { effort: opciones.effort ?? 'high' },
       system: [{ type: 'text', text: PROMPTS[modo], cache_control: { type: 'ephemeral' } }],
       messages: historial,
       ...(tools.length ? { tools } : {}),
     });
 
-    for await (const ev of stream) {
-      if (ev.type === 'content_block_delta' && ev.delta.type === 'text_delta') {
-        texto += ev.delta.text;
-        yield { t: 'text', v: ev.delta.text };
+    let recibido = false;
+    try {
+      for await (const ev of stream) {
+        if (ev.type === 'content_block_delta' && ev.delta.type === 'text_delta') {
+          recibido = true;
+          texto += ev.delta.text;
+          yield { t: 'text', v: ev.delta.text };
+        }
       }
+    } catch (e) {
+      if (conRespaldo && !recibido && e instanceof Anthropic.BadRequestError) {
+        conRespaldo = false;
+        continue;
+      }
+      throw e;
     }
     const final = await stream.finalMessage();
 

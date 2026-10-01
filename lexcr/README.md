@@ -52,6 +52,8 @@ Next.js 15 (App Router) · TypeScript · Tailwind CSS · Prisma (SQLite en desar
 
 Para activar la inteligencia artificial, abra el archivo `.env` y pegue su clave de Anthropic en `ANTHROPIC_API_KEY`; luego cierre y vuelva a abrir LexCR.
 
+Si algo no funciona, haga doble clic en **`Diagnostico LexCR`** (`.bat` en Windows, `.command` en Mac): revisa archivos, configuración y la conexión con Anthropic sin mostrar la clave, y guarda el resultado en `diagnostico.txt`.
+
 ## Puesta en marcha manual
 
 Requiere Node.js 20 o superior.
