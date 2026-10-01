@@ -73,7 +73,7 @@ export function Protocolo({ escrituras, tomos, tomoActual, siguiente, q, rangoIn
 
       <div className="card overflow-x-auto p-0">
         <table className="table">
-          <thead><tr><th className="pl-5">N.°</th><th>Tomo / folios</th><th>Fecha</th><th>Acto</th><th>Otorgantes</th><th>Estado registral</th><th /></tr></thead>
+          <thead><tr><th className="whitespace-nowrap pl-5">N.°</th><th>Tomo / folios</th><th>Fecha</th><th>Acto</th><th>Otorgantes</th><th>Estado registral</th><th /></tr></thead>
           <tbody>
             {escrituras.map((e) => (
               <tr key={e.id}>

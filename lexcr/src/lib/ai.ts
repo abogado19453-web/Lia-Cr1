@@ -19,7 +19,10 @@ export const DOMINIOS_OFICIALES = [
 export function iaNoConfigurada() {
   return process.env.ANTHROPIC_API_KEY
     ? null
-    : Response.json({ error: 'ANTHROPIC_API_KEY no está configurada en el archivo .env.' }, { status: 503 });
+    : Response.json(
+        { error: 'La inteligencia artificial aún no está activada: falta la clave de Anthropic (ANTHROPIC_API_KEY) en el archivo .env.' },
+        { status: 503 },
+      );
 }
 
 let cliente: Anthropic | null = null;

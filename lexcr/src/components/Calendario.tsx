@@ -18,13 +18,14 @@ export function Calendario({ anio, mes, eventos, base }: { anio: number; mes: nu
   const hoy = clave(new Date());
   const prev = mes === 0 ? mesParam(anio - 1, 11) : mesParam(anio, mes - 1);
   const next = mes === 11 ? mesParam(anio + 1, 0) : mesParam(anio, mes + 1);
-  const titulo = primero.toLocaleDateString('es-CR', { month: 'long', year: 'numeric' });
+  const t = primero.toLocaleDateString('es-CR', { month: 'long', year: 'numeric' });
+  const titulo = t.charAt(0).toUpperCase() + t.slice(1);
 
   return (
     <div className="card">
       <div className="mb-4 flex items-center justify-between">
         <Link className="btn-ghost" href={`${base}&mes=${prev}`} aria-label="Mes anterior"><ChevronLeft size={16} /></Link>
-        <h2 className="text-xl font-semibold capitalize">{titulo}</h2>
+        <h2 className="text-xl font-semibold">{titulo}</h2>
         <Link className="btn-ghost" href={`${base}&mes=${next}`} aria-label="Mes siguiente"><ChevronRight size={16} /></Link>
       </div>
       <div className="grid grid-cols-7 gap-px overflow-hidden rounded-lg border border-line bg-line text-sm">

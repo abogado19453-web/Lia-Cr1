@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { FileSearch, MessageCircle, PenLine, Scale, Zap } from 'lucide-react';
 import { requireUser } from '@/lib/auth';
+import { primerNombre } from '@/lib/config';
 import { prisma } from '@/lib/db';
 import { diasHasta, fmtFecha } from '@/lib/fechas';
 import { ConsultaRapida } from './consulta-rapida';
@@ -28,7 +29,7 @@ export default async function Inicio() {
           <Zap size={13} /> Punto de partida
         </span>
         <h1 className="mt-4 text-4xl font-semibold md:text-5xl">¿En qué trabajamos hoy?</h1>
-        <p className="mt-3 text-lg text-muted">Bienvenido, {user.nombre.split(' ')[0]}. Elija una tarea y avancemos paso a paso.</p>
+        <p className="mt-3 text-lg text-muted">Hola, {primerNombre(user.nombre)}. Elija una tarea y avancemos paso a paso.</p>
       </section>
 
       <div className="grid gap-5 md:grid-cols-2">

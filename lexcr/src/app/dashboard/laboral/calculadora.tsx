@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { calcularLiquidacion, type Terminacion } from '@/lib/laboral';
 
+const num = (n: number, d = 2) => n.toLocaleString('es-CR', { minimumFractionDigits: d, maximumFractionDigits: d });
 const colones = (n: number) => '₡' + n.toLocaleString('es-CR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 function fecha(v: string) {
@@ -78,13 +79,13 @@ export function Calculadora() {
         {resultado && (
           <>
             <p className="mb-4 text-sm text-muted">
-              Tiempo laborado: {(resultado.mesesLaborados / 12).toFixed(2)} años ({resultado.mesesLaborados.toFixed(1)} meses) · Salario diario: {colones(resultado.salarioDiario)}
+              Tiempo laborado: {num(resultado.mesesLaborados / 12)} años ({num(resultado.mesesLaborados, 1)} meses) · Salario diario: {colones(resultado.salarioDiario)}
             </p>
             <table className="table">
               <thead><tr><th>Rubro</th><th>Días</th><th>Fundamento</th><th className="text-right">Monto</th></tr></thead>
               <tbody>
                 {resultado.rubros.map((r) => (
-                  <tr key={r.rubro}><td>{r.rubro}</td><td>{r.dias ?? '—'}</td><td className="text-muted">{r.fundamento}</td><td className="text-right font-mono">{colones(r.monto)}</td></tr>
+                  <tr key={r.rubro}><td>{r.rubro}</td><td>{r.dias == null ? '—' : num(r.dias, Number.isInteger(r.dias) ? 0 : 2)}</td><td className="text-muted">{r.fundamento}</td><td className="text-right font-mono">{colones(r.monto)}</td></tr>
                 ))}
                 <tr><td colSpan={3} className="font-semibold">Total</td><td className="text-right font-mono text-lg font-semibold">{colones(resultado.total)}</td></tr>
               </tbody>

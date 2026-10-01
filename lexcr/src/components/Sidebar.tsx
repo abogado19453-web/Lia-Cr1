@@ -7,7 +7,7 @@ import {
   Bell, BookOpen, Briefcase, Crown, CreditCard, FileText, FolderOpen, Home, LogOut, Menu, MessageSquare,
   Moon, PenLine, Scale, Settings, Share2, ShieldCheck, Stamp, Sun, Users, X,
 } from 'lucide-react';
-import { marca } from '@/lib/config';
+import { marca, primerNombre } from '@/lib/config';
 import { cerrarSesion } from '@/app/(auth)/actions';
 
 const GRUPOS = [
@@ -114,7 +114,7 @@ export function Sidebar({ nombre, email, rol, despacho, alertasUrgentes, plan, p
             {oscuro ? <Sun size={16} /> : <Moon size={16} />} {oscuro ? 'Modo claro' : 'Modo oscuro'}
           </button>
           <div className="flex items-center gap-3 rounded-lg border border-white/10 px-3 py-2">
-            <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-accent text-sm font-semibold text-white">{nombre[0]?.toUpperCase()}</div>
+            <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-accent text-sm font-semibold text-white">{primerNombre(nombre)[0]?.toUpperCase()}</div>
             <div className="min-w-0">
               <div className="truncate text-xs font-semibold uppercase text-white">{nombre}</div>
               <div className="truncate text-[11px] text-[#8ea89f]">{email}</div>

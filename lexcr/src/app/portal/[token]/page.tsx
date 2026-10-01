@@ -37,7 +37,7 @@ export default async function Portal({ params }: { params: Promise<{ token: stri
         <section key={e.id} className="card mb-6">
           <p className="font-mono text-xs text-muted">{e.numero}</p>
           <h2 className="text-xl font-semibold">{e.titulo}</h2>
-          <p className="mb-4 text-sm text-muted">{e.materia} · Estado: {e.estado}{e.despachoJudicial ? ` · ${e.despachoJudicial}` : ''}</p>
+          <p className="mb-4 text-sm text-muted">{e.materia} · Estado: {e.estado.charAt(0).toUpperCase() + e.estado.slice(1)}{e.despachoJudicial ? ` · ${e.despachoJudicial}` : ''}</p>
           {e.actuaciones.length > 0 && (
             <ol className="mb-4 space-y-2 border-l border-line pl-4">
               {e.actuaciones.map((a) => (

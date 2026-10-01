@@ -76,7 +76,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
             <table className="table">
               <tbody>
                 {e.alertas.map((a) => (
-                  <AlertaFila key={a.id} id={a.id} titulo={a.titulo} tipo={a.tipo} fecha={fmtFecha(a.fechaVence)} dias={diasHasta(a.fechaVence)} completada={a.completada} />
+                  <AlertaFila key={a.id} id={a.id} titulo={a.titulo} tipo={a.tipo} fecha={fmtFecha(a.fechaVence)} dias={diasHasta(a.fechaVence)} completada={a.completada} mostrarExpediente={false} />
                 ))}
                 {!e.alertas.length && <tr><td className="text-muted">Sin plazos registrados.</td></tr>}
               </tbody>
