@@ -61,14 +61,5 @@ echo
 echo "LexCR está en http://localhost:${PUERTO}"
 echo "La primera vez, entre a «Registre su despacho» para crear su cuenta."
 echo "Para detenerla, presione Ctrl+C en esta ventana."
-URL="http://localhost:${PUERTO}/registro"
-abrir() {
-  # Prefiere Firefox; si no está instalado, usa el navegador predeterminado.
-  if [ -d "/Applications/Firefox.app" ]; then open -a Firefox "$URL"
-  elif command -v firefox >/dev/null 2>&1; then firefox "$URL" >/dev/null 2>&1
-  elif command -v open >/dev/null 2>&1; then open "$URL"
-  elif command -v xdg-open >/dev/null 2>&1; then xdg-open "$URL" >/dev/null 2>&1
-  fi
-}
-( sleep 3; abrir ) &
+node scripts/abrir-navegador.mjs "http://localhost:${PUERTO}/registro" &
 exec npx next start -p "$PUERTO"

@@ -42,16 +42,15 @@ Los correos de `PLATFORM_ADMIN_EMAILS` ven el menú «Plataforma». Los métodos
 
 Next.js 15 (App Router) · TypeScript · Tailwind CSS · Prisma (SQLite en desarrollo, PostgreSQL en producción) · SDK de Anthropic (`claude-opus-5-5`, respaldo automático del servidor ante rechazos) · sesiones JWT firmadas en cookie `httpOnly` · contraseñas con bcrypt.
 
-## Probar en su computadora (macOS o Linux)
+## Probar en su computadora
 
-1. Instale **Node.js LTS** desde https://nodejs.org.
-2. Abra la Terminal en la carpeta `lexcr` y ejecute:
+1. Instale **Node.js LTS** desde https://nodejs.org (una sola vez).
+2. Abra la carpeta del proyecto y haga doble clic en:
+   - **Windows:** `Iniciar LexCR.bat`
+   - **Mac:** `Iniciar LexCR.command` (si macOS lo bloquea la primera vez: clic derecho → Abrir). También puede ejecutar `bash iniciar.sh` en la Terminal.
+3. La primera vez instala dependencias y compila (2 a 4 minutos). Luego abre Firefox, o el navegador predeterminado si Firefox no está instalado, en http://localhost:3000/registro.
 
-   ```bash
-   bash iniciar.sh
-   ```
-
-   El script crea la configuración, pide (opcionalmente) la clave de Anthropic, instala dependencias, prepara la base de datos, compila y abre http://localhost:3000/registro. Las veces siguientes arranca en segundos.
+Para activar la inteligencia artificial, abra el archivo `.env` y pegue su clave de Anthropic en `ANTHROPIC_API_KEY`; luego cierre y vuelva a abrir LexCR.
 
 ## Puesta en marcha manual
 
