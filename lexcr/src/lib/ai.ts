@@ -162,6 +162,9 @@ export async function* generar(
 export function mensajeError(e: unknown): string {
   if (e instanceof Anthropic.AuthenticationError) return 'La clave de API de Anthropic no es válida.';
   if (e instanceof Anthropic.RateLimitError) return 'Límite de uso alcanzado. Intente de nuevo en unos minutos.';
+  if (e instanceof Anthropic.BadRequestError && /credit balance/i.test(e.message)) {
+    return 'La cuenta de Anthropic no tiene saldo. Compre créditos en console.anthropic.com → Settings → Billing; la misma clave funcionará en uno o dos minutos.';
+  }
   if (e instanceof Anthropic.BadRequestError) return 'Solicitud rechazada por el servicio de IA: ' + e.message;
   if (e instanceof Anthropic.APIConnectionError) return 'No hay conexión con el servicio de IA.';
   if (e instanceof Anthropic.APIError) return `Error del servicio de IA (${e.status}).`;
