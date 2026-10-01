@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lia-CR · Despacho</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">L</span>
+        <div>
+          <div class="brand-name">Lia-CR</div>
+          <div class="brand-sub">Despacho legal y notarial</div>
+        </div>
+      </div>
+
+      <div class="profile" id="profileCard">
+        <div class="profile-name" id="profileName">[Nombre del Profesional]</div>
+        <div class="profile-role" id="profileRole">Abogado y Notario</div>
+      </div>
+
+      <nav class="nav" id="nav">
+        <div class="nav-group">General</div>
+        <a href="#inicio" data-route="inicio"><span class="ico">⌂</span>Inicio</a>
+
+        <div class="nav-group">Herramientas</div>
+        <a href="#asistente" data-route="asistente"><span class="ico">✦</span>Asistente</a>
+        <a href="#redactor" data-route="redactor"><span class="ico">✎</span>Redactor</a>
+        <a href="#analisis" data-route="analisis"><span class="ico">◎</span>Análisis de documentos</a>
+        <a href="#legislacion" data-route="legislacion"><span class="ico">§</span>Legislación</a>
+        <a href="#plantillas" data-route="plantillas"><span class="ico">▤</span>Plantillas</a>
+
+        <div class="nav-group">Despacho</div>
+        <a href="#expedientes" data-route="expedientes"><span class="ico">▣</span>Expedientes</a>
+        <a href="#plazos" data-route="plazos"><span class="ico">◷</span>Plazos y alertas<span class="badge" id="plazosBadge" hidden></span></a>
+        <a href="#protocolo" data-route="protocolo"><span class="ico">✒</span>Protocolo notarial</a>
+
+        <div class="nav-group">Administración</div>
+        <a href="#ajustes" data-route="ajustes"><span class="ico">⚙</span>Ajustes</a>
+      </nav>
+
+      <div class="sidebar-foot">
+        <button class="ghost" id="themeToggle" type="button">◐ Modo oscuro</button>
+      </div>
+    </aside>
+
+    <div class="main-wrap">
+      <header class="topbar">
+        <button class="menu-btn" id="menuBtn" type="button" aria-label="Abrir menú">☰</button>
+        <span class="topbar-title" id="topbarTitle">Inicio</span>
+      </header>
+      <main class="main" id="view" tabindex="-1"></main>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
