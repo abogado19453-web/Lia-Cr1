@@ -7,7 +7,7 @@ Plataforma web para despachos legales y notariales de Costa Rica. **LexCR** es u
 | Módulo | Función |
 | --- | --- |
 | **Inicio** | Accesos a las tareas principales, consulta directa y próximos vencimientos |
-| **Alertas** | Plazos, audiencias y vencimientos; el menú indica los que vencen en ≤ 3 días |
+| **Alertas** | Plazos, audiencias y vencimientos en lista o calendario mensual; el menú indica los que vencen en ≤ 3 días |
 | **Asistente IA** | Consultas jurídicas con historial de conversaciones (Claude) |
 | **Derecho Laboral** | Liquidación: preaviso (art. 28), cesantía (art. 29, tope 8 años), vacaciones y aguinaldo (Ley 2412) |
 | **Documentos** | Subida de PDF/DOCX/TXT, extracción de texto, análisis con IA y exportación a Word |
@@ -42,7 +42,26 @@ Abra `/registro` para crear el despacho; la primera cuenta queda como administra
 - `AUTH_SECRET`: genere uno con `openssl rand -base64 32`.
 - `ANTHROPIC_API_KEY`: se obtiene en https://console.anthropic.com/. Sin ella, todo funciona salvo el asistente, el redactor, el análisis y la búsqueda de jurisprudencia, que muestran un aviso.
 
+### Ingreso con Google (opcional)
+
+1. En https://console.cloud.google.com/apis/credentials cree un **ID de cliente OAuth** de tipo *Aplicación web*.
+2. Agregue como URI de redirección autorizado: `{APP_URL}/api/auth/google/callback` (en local: `http://localhost:3000/api/auth/google/callback`).
+3. Complete `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` y `APP_URL` en `.env`.
+
+El botón «Continuar con Google» aparece solo cuando estas variables están configuradas. Si el correo ya tiene cuenta, ingresa a ella; si no, se crea un despacho nuevo con esa persona como administradora.
+
 ## Producción
+
+### Con Docker
+
+```bash
+cp .env.example .env   # complete las variables
+docker compose up -d --build
+```
+
+La base de datos SQLite y los archivos subidos quedan en el volumen `lexcr-datos`.
+
+### Sin Docker
 
 1. En `prisma/schema.prisma` cambie `provider = "sqlite"` por `provider = "postgresql"` y use una `DATABASE_URL` de PostgreSQL (por ejemplo Supabase, Neon o un servidor propio).
 2. `npm run build && npm start`.
@@ -53,6 +72,10 @@ Abra `/registro` para crear el despacho; la primera cuenta queda como administra
 ```bash
 npm test        # cálculos laborales
 npm run lint    # verificación de tipos
+
+# Punta a punta (con la aplicación en ejecución sobre una base vacía)
+npx playwright install chromium
+E2E_URL=http://localhost:3000 npm run e2e
 ```
 
 ## Confidencialidad

@@ -2,17 +2,26 @@ import { requireUser } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { diasHasta, fmtFecha } from '@/lib/fechas';
 import { AlertaFila } from '@/components/AlertaFila';
+import { Calendario } from '@/components/Calendario';
 import { PageHead } from '@/components/PageHead';
 import { crearAlerta } from './actions';
 
 export const metadata = { title: 'Alertas' };
 
-export default async function Page({ searchParams }: { searchParams: Promise<{ ver?: string }> }) {
+export default async function Page({ searchParams }: { searchParams: Promise<{ ver?: string; vista?: string; mes?: string }> }) {
   const user = await requireUser();
-  const { ver } = await searchParams;
+  const { ver, vista, mes } = await searchParams;
+  const calendario = vista === 'calendario';
+  const hoy = new Date();
+  const [anio, m] = mes && /^\d{4}-\d{2}$/.test(mes) ? [Number(mes.slice(0, 4)), Number(mes.slice(5)) - 1] : [hoy.getFullYear(), hoy.getMonth()];
   const [alertas, expedientes] = await Promise.all([
     prisma.alerta.findMany({
-      where: { despachoId: user.despachoId, ...(ver === 'todas' ? {} : { completada: false }) },
+      where: {
+        despachoId: user.despachoId,
+        ...(calendario
+          ? { fechaVence: { gte: new Date(anio, m, 1), lt: new Date(anio, m + 1, 1) } }
+          : ver === 'todas' ? {} : { completada: false }),
+      },
       orderBy: { fechaVence: 'asc' },
       include: { expediente: { select: { id: true, numero: true } } },
     }),
@@ -22,7 +31,10 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ v
   return (
     <>
       <PageHead titulo="Alertas" descripcion="Plazos procesales, audiencias y vencimientos del despacho.">
-        <a className="btn-ghost" href={ver === 'todas' ? '/dashboard/alertas' : '/dashboard/alertas?ver=todas'}>{ver === 'todas' ? 'Solo pendientes' : 'Ver atendidas'}</a>
+        <div className="flex gap-2">
+          <a className="btn-ghost" href={calendario ? '/dashboard/alertas' : '/dashboard/alertas?vista=calendario'}>{calendario ? 'Vista de lista' : 'Vista de calendario'}</a>
+          {!calendario && <a className="btn-ghost" href={ver === 'todas' ? '/dashboard/alertas' : '/dashboard/alertas?ver=todas'}>{ver === 'todas' ? 'Solo pendientes' : 'Ver atendidas'}</a>}
+        </div>
       </PageHead>
 
       <form action={crearAlerta} className="card mb-6 grid items-end gap-3 md:grid-cols-[1fr_150px_160px_220px_auto]">
@@ -37,6 +49,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ v
         <button className="btn">Agregar</button>
       </form>
 
+      {calendario ? (
+        <Calendario anio={anio} mes={m} base="/dashboard/alertas?vista=calendario" eventos={alertas.map((a) => ({ id: a.id, titulo: a.titulo, fecha: a.fechaVence, completada: a.completada, expedienteId: a.expedienteId }))} />
+      ) : (
       <div className="card overflow-x-auto p-0">
         <table className="table">
           <thead><tr><th className="pl-5" /><th>Descripción</th><th>Tipo</th><th>Expediente</th><th>Fecha</th><th>Estado</th><th /></tr></thead>
@@ -48,6 +63,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ v
           </tbody>
         </table>
       </div>
+      )}
       <p className="mt-3 text-xs text-muted">Los días se cuentan en naturales. Verifique el cómputo procesal (días hábiles, feriados y cierres colectivos del Poder Judicial) conforme a la norma aplicable.</p>
     </>
   );
