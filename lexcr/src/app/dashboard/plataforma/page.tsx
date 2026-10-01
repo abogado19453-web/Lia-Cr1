@@ -1,7 +1,8 @@
 import { requirePlatformAdmin } from '@/lib/auth';
+import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/db';
 import { fmtFecha, toInputDate } from '@/lib/fechas';
-import { PLANES, colones, inicioMes, planEfectivo, type PlanId } from '@/lib/planes';
+import { planesActivos, PLANES, colones, inicioMes, planEfectivo, type PlanId } from '@/lib/planes';
 import { PageHead } from '@/components/PageHead';
 import { ConfirmButton } from '@/components/ConfirmButton';
 import { aprobarPago, asignarPlan, rechazarPago } from './actions';
@@ -11,6 +12,7 @@ export const metadata = { title: 'Plataforma' };
 const METODO: Record<string, string> = { sinpe: 'SINPE Móvil', transferencia: 'Transferencia', tarjeta: 'Tarjeta' };
 
 export default async function Page() {
+  if (!planesActivos()) redirect('/dashboard');
   await requirePlatformAdmin();
   const mes = inicioMes();
   const [pendientes, despachos, ingresosMes, usos] = await Promise.all([

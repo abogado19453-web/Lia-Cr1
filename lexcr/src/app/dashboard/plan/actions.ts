@@ -5,7 +5,7 @@ import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { requireAdmin } from '@/lib/auth';
 import { prisma } from '@/lib/db';
-import { PLANES, PLANES_PAGOS, esPeriodo, esPlan, precio } from '@/lib/planes';
+import { PLANES, PLANES_PAGOS, esPeriodo, esPlan, planesActivos, precio } from '@/lib/planes';
 import { guardarArchivo } from '@/lib/storage';
 import { stripe } from '@/lib/stripe';
 import { datosPago } from '@/lib/suscripcion';
@@ -14,6 +14,7 @@ const MAX_COMPROBANTE = 5 * 1024 * 1024;
 const TIPOS_COMPROBANTE = ['image/png', 'image/jpeg', 'image/webp', 'application/pdf'];
 
 function validarPlan(fd: FormData) {
+  if (!planesActivos()) return null;
   const plan = fd.get('plan');
   const periodo = fd.get('periodo');
   if (!esPlan(plan) || !PLANES_PAGOS.includes(plan) || !esPeriodo(periodo)) return null;

@@ -27,6 +27,9 @@ export const PLANES = {
 } as const;
 
 export type PlanId = keyof typeof PLANES;
+
+/** Interruptor general: con PLANES_ACTIVOS distinto de "true" no hay límites ni cobros. */
+export const planesActivos = () => process.env.PLANES_ACTIVOS === 'true';
 export type Periodo = 'mensual' | 'anual';
 export const PLANES_PAGOS: PlanId[] = ['profesional', 'despacho'];
 

@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { marca } from '@/lib/config';
+import { planesActivos } from '@/lib/planes';
 import { PageHead } from '@/components/PageHead';
 
 export const metadata = { title: 'Guía de uso' };
@@ -23,7 +24,7 @@ export default function Page() {
     <>
       <PageHead titulo="Guía de uso" descripcion={`Cómo aprovechar ${marca.nombre} en el trabajo diario del despacho.`} />
       <div className="grid gap-4 md:grid-cols-2">
-        {SECCIONES.map((s) => (
+        {SECCIONES.filter((s) => planesActivos() || s.href !== '/dashboard/plan').map((s) => (
           <Link key={s.href} href={s.href} className="card transition hover:border-accent">
             <h2 className="text-lg font-semibold">{s.t}</h2>
             <p className="mt-1 text-sm text-muted">{s.d}</p>

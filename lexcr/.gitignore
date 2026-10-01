@@ -6,3 +6,4 @@ node_modules
 uploads/
 next-env.d.ts
 *.tsbuildinfo
+.compilacion.log

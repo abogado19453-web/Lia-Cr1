@@ -26,6 +26,8 @@ Cada despacho es independiente: sus usuarios solo acceden a los datos de su prop
 
 ## Planes y cobro
 
+El cobro está **desactivado por defecto**: con `PLANES_ACTIVOS` distinto de `"true"` no hay límites, ni menú «Mi plan», ni «Plataforma». Para activarlo, ponga `PLANES_ACTIVOS="true"` en `.env`.
+
 Los planes (Gratis, Profesional y Despacho), sus precios en colones y sus límites se definen en `src/lib/planes.ts`; el pago anual equivale a diez meses. Al vencer un plan, el despacho conserva todos sus datos y pasa a operar con los límites del plan Gratis.
 
 | Método | Configuración | Activación |
@@ -40,7 +42,18 @@ Los correos de `PLATFORM_ADMIN_EMAILS` ven el menú «Plataforma». Los métodos
 
 Next.js 15 (App Router) · TypeScript · Tailwind CSS · Prisma (SQLite en desarrollo, PostgreSQL en producción) · SDK de Anthropic (`claude-opus-5-5`, respaldo automático del servidor ante rechazos) · sesiones JWT firmadas en cookie `httpOnly` · contraseñas con bcrypt.
 
-## Puesta en marcha
+## Probar en su computadora (macOS o Linux)
+
+1. Instale **Node.js LTS** desde https://nodejs.org.
+2. Abra la Terminal en la carpeta `lexcr` y ejecute:
+
+   ```bash
+   bash iniciar.sh
+   ```
+
+   El script crea la configuración, pide (opcionalmente) la clave de Anthropic, instala dependencias, prepara la base de datos, compila y abre http://localhost:3000/registro. Las veces siguientes arranca en segundos.
+
+## Puesta en marcha manual
 
 Requiere Node.js 20 o superior.
 

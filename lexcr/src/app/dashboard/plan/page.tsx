@@ -1,8 +1,9 @@
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { requireUser } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { fmtFecha } from '@/lib/fechas';
-import { PLANES, colones, type PlanId } from '@/lib/planes';
+import { planesActivos, PLANES, colones, type PlanId } from '@/lib/planes';
 import { datosPago, estadoSuscripcion } from '@/lib/suscripcion';
 import { PageHead } from '@/components/PageHead';
 import { ConfirmButton } from '@/components/ConfirmButton';
@@ -32,6 +33,7 @@ function Medidor({ etiqueta, uso, limite, unidad = '' }: { etiqueta: string; uso
 }
 
 export default async function Page({ searchParams }: { searchParams: Promise<{ pago?: string; plan?: string }> }) {
+  if (!planesActivos()) redirect('/dashboard');
   const user = await requireUser();
   const { pago, plan: planSel } = await searchParams;
   const [estado, pagos] = await Promise.all([

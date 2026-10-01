@@ -3,7 +3,7 @@ import { Sidebar } from '@/components/Sidebar';
 import { requireUser } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { diasHasta, fmtFecha } from '@/lib/fechas';
-import { PLANES, planEfectivo } from '@/lib/planes';
+import { PLANES, planEfectivo, planesActivos } from '@/lib/planes';
 import { esAdminPlataforma } from '@/lib/suscripcion';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -14,9 +14,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
     where: { despachoId: user.despachoId, completada: false, fechaVence: { lte: limite } },
   });
   const { plan, planVence } = user.despacho;
+  const conPlanes = planesActivos();
   const efectivo = planEfectivo(plan, planVence);
-  const diasPlan = efectivo !== 'gratis' && planVence ? diasHasta(planVence) : null;
-  const vencido = plan !== 'gratis' && efectivo === 'gratis';
+  const diasPlan = conPlanes && efectivo !== 'gratis' && planVence ? diasHasta(planVence) : null;
+  const vencido = conPlanes && plan !== 'gratis' && efectivo === 'gratis';
 
   return (
     <div className="md:flex">
@@ -26,7 +27,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         rol={user.rol}
         despacho={user.despacho.nombre}
         alertasUrgentes={urgentes}
-        plan={PLANES[efectivo].nombre}
+        plan={conPlanes ? PLANES[efectivo].nombre : null}
         pagado={efectivo !== 'gratis'}
         adminPlataforma={esAdminPlataforma(user.email)}
       />

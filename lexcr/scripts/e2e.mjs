@@ -1,4 +1,5 @@
-// Prueba de punta a punta. Requiere la aplicación en ejecución sobre una base de datos vacía:
+// Prueba de punta a punta. Con E2E_PLANES=1 incluye límites y cobro (servidor con PLANES_ACTIVOS=true,
+// PLATFORM_ADMIN_EMAILS=prueba@ejemplo.cr y PAGO_SINPE_NUMERO). Requiere la aplicación en ejecución sobre una base de datos vacía:
 //   npx prisma db push && npm run build && npm start
 //   E2E_URL=http://localhost:3000 node scripts/e2e.mjs
 // Navegador: `npx playwright install chromium`, o CHROMIUM_PATH con la ruta de un Chromium existente.
@@ -138,40 +139,42 @@ import os from 'node:os';
     await p.fill('input[name=password]', 'temporal123');
     await p.click('button:has-text("Agregar al equipo")');
   };
-  await llenarMiembro();
-  await p.waitForSelector('text=permite 1 usuario');
-  step('límite de usuarios del plan Gratis');
+  if (process.env.E2E_PLANES === '1') {
+    await llenarMiembro();
+    await p.waitForSelector('text=permite 1 usuario');
+    step('límite de usuarios del plan Gratis');
 
-  // Plan: reporte de pago por SINPE y aprobación desde «Plataforma»
-  // (requiere PLATFORM_ADMIN_EMAILS=prueba@ejemplo.cr y PAGO_SINPE_NUMERO en el servidor)
-  const comprobante = path.join(os.tmpdir(), 'comprobante.png');
-  fs.writeFileSync(comprobante, Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64'));
-  await p.goto(B + '/dashboard/plan');
-  await p.click('button:has-text("Elegir Profesional")');
-  await p.click('button:has-text("SINPE Móvil")');
-  await p.fill('input[name=referencia]', 'SINPE-123456');
-  await p.setInputFiles('input[name=comprobante]', comprobante);
-  await p.click('button:has-text("Reportar pago")');
-  await p.waitForSelector('text=Pago reportado');
-  await p.waitForSelector('td:has-text("En revisión")');
-  await p.goto(B + '/dashboard/plataforma');
-  await p.waitForSelector('td:has-text("SINPE-123456")');
-  const comp = await ctx.request.get(B + (await p.getAttribute('a:has-text("Ver")', 'href')));
-  console.log('  comprobante →', comp.status(), comp.headers()['content-type']);
-  await p.screenshot({ path: shot('plataforma'), fullPage: true });
-  await p.click('button:has-text("Aprobar")');
-  await p.waitForSelector('text=No hay pagos pendientes');
-  await p.goto(B + '/dashboard/plan');
-  await p.waitForSelector('h2:has-text("Profesional")');
-  await p.screenshot({ path: shot('plan'), fullPage: true });
-  await p.click('a:has-text("Recibo")');
-  await p.waitForSelector('text=Comprobante de pago de suscripción');
-  step('pago SINPE reportado, aprobado y recibo');
+    // Plan: reporte de pago por SINPE y aprobación desde «Plataforma»
+    // (requiere PLATFORM_ADMIN_EMAILS=prueba@ejemplo.cr y PAGO_SINPE_NUMERO en el servidor)
+    const comprobante = path.join(os.tmpdir(), 'comprobante.png');
+    fs.writeFileSync(comprobante, Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64'));
+    await p.goto(B + '/dashboard/plan');
+    await p.click('button:has-text("Elegir Profesional")');
+    await p.click('button:has-text("SINPE Móvil")');
+    await p.fill('input[name=referencia]', 'SINPE-123456');
+    await p.setInputFiles('input[name=comprobante]', comprobante);
+    await p.click('button:has-text("Reportar pago")');
+    await p.waitForSelector('text=Pago reportado');
+    await p.waitForSelector('td:has-text("En revisión")');
+    await p.goto(B + '/dashboard/plataforma');
+    await p.waitForSelector('td:has-text("SINPE-123456")');
+    const comp = await ctx.request.get(B + (await p.getAttribute('a:has-text("Ver")', 'href')));
+    console.log('  comprobante →', comp.status(), comp.headers()['content-type']);
+    await p.screenshot({ path: shot('plataforma'), fullPage: true });
+    await p.click('button:has-text("Aprobar")');
+    await p.waitForSelector('text=No hay pagos pendientes');
+    await p.goto(B + '/dashboard/plan');
+    await p.waitForSelector('h2:has-text("Profesional")');
+    await p.screenshot({ path: shot('plan'), fullPage: true });
+    await p.click('a:has-text("Recibo")');
+    await p.waitForSelector('text=Comprobante de pago de suscripción');
+    step('pago SINPE reportado, aprobado y recibo');
+  }
 
   await p.goto(B + '/dashboard/equipo');
   await llenarMiembro();
   await p.waitForSelector('td:has-text("asistente@ejemplo.cr")');
-  step('equipo con plan Profesional');
+  step('equipo');
 
   // Alertas badge + portal público
   await p.goto(B + '/dashboard/alertas?vista=calendario');

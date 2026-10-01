@@ -1,6 +1,6 @@
 import 'server-only';
 import { prisma } from './db';
-import { PLANES, calcularVigencia, esPeriodo, esPlan, inicioMes, planEfectivo, type PlanId } from './planes';
+import { PLANES, calcularVigencia, esPeriodo, esPlan, inicioMes, planEfectivo, planesActivos, type PlanId } from './planes';
 
 export type TipoUsoIA = 'consulta' | 'jurisprudencia' | 'redaccion' | 'analisis';
 
@@ -24,6 +24,10 @@ export async function estadoSuscripcion(despachoId: string) {
 
 /** Verifica el cupo mensual de IA y, si hay disponibilidad, registra el uso. */
 export async function consumirIA(despachoId: string, usuarioId: string, tipo: TipoUsoIA): Promise<string | null> {
+  if (!planesActivos()) {
+    await prisma.usoIA.create({ data: { despachoId, usuarioId, tipo } });
+    return null;
+  }
   const e = await estadoSuscripcion(despachoId);
   if (e.uso.consultasIA >= e.limites.consultasIA) {
     return `Alcanzó el límite de ${e.limites.consultasIA} usos de IA de este mes en el plan ${PLANES[e.plan].nombre}. Puede ampliarlo en «Mejorar mi plan».`;
@@ -33,11 +37,13 @@ export async function consumirIA(despachoId: string, usuarioId: string, tipo: Ti
 }
 
 export async function puedeAgregarUsuario(despachoId: string) {
+  if (!planesActivos()) return null;
   const e = await estadoSuscripcion(despachoId);
   return e.uso.usuarios < e.limites.usuarios ? null : `El plan ${PLANES[e.plan].nombre} permite ${e.limites.usuarios} usuario(s). Mejore su plan para agregar más.`;
 }
 
 export async function puedeSubir(despachoId: string, bytes: number) {
+  if (!planesActivos()) return null;
   const e = await estadoSuscripcion(despachoId);
   return e.uso.almacenamientoMB + bytes / 1_048_576 <= e.limites.almacenamientoMB
     ? null
