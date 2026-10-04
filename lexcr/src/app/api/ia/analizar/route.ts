@@ -1,11 +1,11 @@
-import { cookies } from 'next/headers';
 import { z } from 'zod';
-import { generar, iaNoConfigurada, respuestaStream } from '@/lib/ai';
+import { generar, respuestaStream } from '@/lib/ai';
 import { prisma } from '@/lib/db';
+import { prepararIA } from '@/lib/ia-ruta';
 import { SESSION_COOKIE, verificarSesion } from '@/lib/session';
-import { consumirIA } from '@/lib/suscripcion';
+import { cookies } from 'next/headers';
 
-const Body = z.object({ documentoId: z.string(), enfoque: z.string().max(4000).optional() });
+const Body = z.object({ documentoId: z.string(), enfoque: z.string().max(4000).optional(), proveedorId: z.string().optional() });
 const MAX_CHARS = 400_000;
 
 export async function POST(req: Request) {
@@ -23,10 +23,8 @@ export async function POST(req: Request) {
     return Response.json({ error: 'El documento excede el tamaño máximo de análisis. Divídalo en partes.' }, { status: 413 });
   }
 
-  const sinIA = iaNoConfigurada();
-  if (sinIA) return sinIA;
-  const limite = await consumirIA(s.did, s.uid, 'analisis');
-  if (limite) return Response.json({ error: limite }, { status: 402 });
+  const ctx = await prepararIA(p.data.proveedorId, 'analisis');
+  if (ctx instanceof Response) return ctx;
 
   const pedido = `Documento: ${doc.nombre}
 ${p.data.enfoque ? `Enfoque solicitado: ${p.data.enfoque}\n` : ''}
@@ -34,7 +32,7 @@ ${p.data.enfoque ? `Enfoque solicitado: ${p.data.enfoque}\n` : ''}
 ${doc.contenido}
 </documento>`;
 
-  return respuestaStream(generar('analisis', [{ role: 'user', content: pedido }], { effort: 'high' }), async (texto) => {
+  return respuestaStream(generar('analisis', [{ role: 'user', content: pedido }], ctx.proveedor, { effort: 'high' }), async (texto) => {
     await prisma.documento.update({ where: { id: doc.id }, data: { analisis: texto } });
   });
 }

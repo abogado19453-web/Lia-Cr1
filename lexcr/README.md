@@ -18,11 +18,29 @@ Plataforma web para despachos legales y notariales de Costa Rica. **LexCR** es u
 | **Protocolo** | Control de escrituras por tomo y folio, estado registral, citas de presentación e índice CSV por rango de fechas |
 | **Redactor Legal** | Escrituras en formato de protocolo (texto corrido, cantidades en letras), contratos y escritos procesales, con marcadores `[Insertar …]`. Las escrituras se exportan a Word con numeración de líneas por página |
 | **Equipo** | Alta de miembros y roles (administrador y miembro) |
+| **Inteligencia artificial** | Solo administradores: proveedores de IA (Anthropic, OpenAI, Google Gemini, servicios compatibles con OpenAI e IA local con Ollama o LM Studio), con detección de modelos, prueba de conexión, claves cifradas y autorización por usuario |
 | **Ajustes** | Perfil, carné, nombre del despacho y contraseña |
 | **Mi plan** | Plan vigente, consumo del mes (IA, usuarios, almacenamiento), «Mejorar mi plan», pagos por SINPE Móvil, transferencia o tarjeta, historial y recibos |
 | **Plataforma** | Solo para el dueño de la plataforma: verificación de pagos con comprobante, asignación manual de planes y resumen de despachos e ingresos |
 
 Cada despacho es independiente: sus usuarios solo acceden a los datos de su propio despacho.
+
+## Proveedores de inteligencia artificial
+
+En **Administración → Inteligencia artificial** el administrador agrega uno o varios proveedores, elige el predeterminado y marca qué usuarios pueden usar cada uno. Los administradores tienen acceso a todos. Cada usuario elige entre sus proveedores autorizados en el Asistente, el Redactor, el Análisis y la Jurisprudencia.
+
+| Tipo | Dirección | Clave |
+| --- | --- | --- |
+| Anthropic (Claude) | fija (`api.anthropic.com`) | console.anthropic.com |
+| OpenAI | fija | platform.openai.com |
+| Google Gemini | fija (endpoint compatible con OpenAI) | aistudio.google.com |
+| Otro servicio compatible | la del proveedor (OpenRouter, Groq, DeepSeek, Mistral…) | la del proveedor |
+| IA local | `http://localhost:11434/v1` (Ollama) o `http://localhost:1234/v1` (LM Studio) | normalmente no requiere |
+
+- Las claves se guardan cifradas (AES-256-GCM) con una clave derivada de `LEXCR_CLAVE_CIFRADO` o, si no existe, de `AUTH_SECRET`. Si cambia ese valor, las claves guardadas dejan de poder leerse y hay que volver a ingresarlas.
+- La búsqueda de jurisprudencia en fuentes oficiales solo funciona con Anthropic; con otros proveedores la respuesta advierte que debe verificarse.
+- Mientras el despacho no tenga proveedores configurados, se usa `ANTHROPIC_API_KEY` del archivo `.env`.
+- En un servidor compartido, `LEXCR_BLOQUEAR_IA_LOCAL="true"` impide conectar direcciones de red local.
 
 ## Planes y cobro
 

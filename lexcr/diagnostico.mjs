@@ -77,6 +77,8 @@ else {
   await probar('Consulta con respaldo ante rechazos', { betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' });
 }
 
+info('Los proveedores agregados en Administración → Inteligencia artificial se verifican con su botón «Probar».');
+
 titulo('5. Servidor local');
 try {
   const r = await fetch('http://localhost:3000/ingresar', { signal: AbortSignal.timeout(3000) });

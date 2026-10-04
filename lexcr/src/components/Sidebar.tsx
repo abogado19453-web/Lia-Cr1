@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import {
   Bell, BookOpen, Briefcase, Crown, CreditCard, FileText, FolderOpen, Home, LogOut, Menu, MessageSquare,
-  Moon, PenLine, Scale, Settings, Share2, ShieldCheck, Stamp, Sun, Users, X,
+  Cpu, Moon, PenLine, Scale, Settings, Share2, ShieldCheck, Stamp, Sun, Users, X,
 } from 'lucide-react';
 import { marca, primerNombre } from '@/lib/config';
 import { cerrarSesion } from '@/app/(auth)/actions';
@@ -31,6 +31,7 @@ const GRUPOS = [
     titulo: 'Administración',
     items: [
       { href: '/dashboard/equipo', label: 'Equipo', icon: Users, admin: true },
+      { href: '/dashboard/ia', label: 'Inteligencia artificial', icon: Cpu, admin: true },
       { href: '/dashboard/plan', label: 'Mi plan', icon: CreditCard, planes: true },
       { href: '/dashboard/ajustes', label: 'Ajustes', icon: Settings },
       { href: '/dashboard/plataforma', label: 'Plataforma', icon: ShieldCheck, plataforma: true, planes: true },

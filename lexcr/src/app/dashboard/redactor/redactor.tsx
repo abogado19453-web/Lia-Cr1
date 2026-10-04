@@ -4,6 +4,8 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Copy, Save, Sparkles, Square } from 'lucide-react';
 import { useIAStream } from '@/components/useIAStream';
+import { SelectorIA, useProveedorIA } from '@/components/SelectorIA';
+import type { ProveedorDisponible } from '@/lib/ia-catalogo';
 import { guardarGenerado } from '../documentos/actions';
 
 const PLANTILLAS: Record<string, string[]> = {
@@ -54,9 +56,10 @@ const CLASES = [
   { v: 'otro', l: 'Otro documento' },
 ];
 
-type Props = { expedientes: { id: string; numero: string; titulo: string }[]; expedienteInicial?: string };
+type Props = { expedientes: { id: string; numero: string; titulo: string }[]; expedienteInicial?: string; proveedores: ProveedorDisponible[] };
 
-export function Redactor({ expedientes, expedienteInicial }: Props) {
+export function Redactor({ expedientes, expedienteInicial, proveedores }: Props) {
+  const [proveedorId, setProveedorId] = useProveedorIA(proveedores);
   const router = useRouter();
   const ia = useIAStream();
   const [clase, setClase] = useState('escritura');
@@ -72,7 +75,7 @@ export function Redactor({ expedientes, expedienteInicial }: Props) {
   }, [ia.texto, ia.cargando]);
 
   async function generar() {
-    const r = await ia.ejecutar('/api/ia/redactar', { clase, tipo, datos, instrucciones });
+    const r = await ia.ejecutar('/api/ia/redactar', { clase, tipo, datos, instrucciones, proveedorId: proveedorId || undefined });
     setBorrador(r.texto);
   }
 
@@ -85,6 +88,7 @@ export function Redactor({ expedientes, expedienteInicial }: Props) {
   return (
     <div className="grid gap-6 lg:grid-cols-[380px_1fr]">
       <div className="card space-y-3 self-start">
+        <SelectorIA proveedores={proveedores} valor={proveedorId} onChange={setProveedorId} />
         <label className="label">Clase
           <select className="input" value={clase} onChange={(e) => { setClase(e.target.value); setTipo(PLANTILLAS[e.target.value][0]); }}>
             {CLASES.map((c) => <option key={c.v} value={c.v}>{c.l}</option>)}

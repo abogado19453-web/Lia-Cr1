@@ -3,11 +3,14 @@
 import { useState, useTransition } from 'react';
 import { Save, Sparkles, Square, Trash2 } from 'lucide-react';
 import { useIAStream } from '@/components/useIAStream';
+import { SelectorIA, useProveedorIA } from '@/components/SelectorIA';
+import type { ProveedorDisponible } from '@/lib/ia-catalogo';
 import { actualizarContenido, alternarPortal, borrarDocumento } from '../actions';
 
-type Props = { id: string; generado: boolean; contenido: string; analisis: string; visiblePortal: boolean; tieneTexto: boolean };
+type Props = { id: string; generado: boolean; contenido: string; analisis: string; visiblePortal: boolean; tieneTexto: boolean; proveedores: ProveedorDisponible[] };
 
-export function DetalleDocumento({ id, generado, contenido, analisis, visiblePortal, tieneTexto }: Props) {
+export function DetalleDocumento({ id, generado, contenido, analisis, visiblePortal, tieneTexto, proveedores }: Props) {
+  const [proveedorId, setProveedorId] = useProveedorIA(proveedores);
   const ia = useIAStream();
   const [texto, setTexto] = useState(contenido);
   const [enfoque, setEnfoque] = useState('');
@@ -41,13 +44,16 @@ export function DetalleDocumento({ id, generado, contenido, analisis, visiblePor
       </section>
 
       <section className="card flex flex-col">
-        <h2 className="mb-3 text-lg font-semibold">Análisis con IA</h2>
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-lg font-semibold">Análisis con IA</h2>
+          <SelectorIA proveedores={proveedores} valor={proveedorId} onChange={setProveedorId} />
+        </div>
         <div className="mb-3 flex gap-2">
           <input className="input" placeholder="Enfoque opcional (ej.: riesgos para el comprador)" value={enfoque} onChange={(e) => setEnfoque(e.target.value)} />
           {ia.cargando ? (
             <button className="btn shrink-0" onClick={ia.detener}><Square size={14} /> Detener</button>
           ) : (
-            <button className="btn shrink-0" disabled={!tieneTexto} onClick={() => ia.ejecutar('/api/ia/analizar', { documentoId: id, enfoque: enfoque || undefined })}>
+            <button className="btn shrink-0" disabled={!tieneTexto} onClick={() => ia.ejecutar('/api/ia/analizar', { documentoId: id, enfoque: enfoque || undefined, proveedorId: proveedorId || undefined })}>
               <Sparkles size={14} /> {analisis ? 'Volver a analizar' : 'Analizar'}
             </button>
           )}

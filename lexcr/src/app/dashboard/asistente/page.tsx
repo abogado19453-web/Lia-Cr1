@@ -1,5 +1,6 @@
 import { requireUser } from '@/lib/auth';
 import { prisma } from '@/lib/db';
+import { proveedoresDisponibles } from '@/lib/ia-proveedores';
 import { Chat } from '@/components/Chat';
 
 export const metadata = { title: 'Asistente IA' };
@@ -27,7 +28,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ c
       base="/dashboard/asistente"
       conversaciones={conversaciones}
       actualId={actual?.id}
-      inicial={actual?.mensajes.map((m) => ({ rol: m.rol, contenido: m.contenido, fuentes: m.fuentes ? JSON.parse(m.fuentes) : [] })) ?? []}
+      proveedores={await proveedoresDisponibles(user)}
+      inicial={actual?.mensajes.map((m) => ({ rol: m.rol, contenido: m.contenido, fuentes: m.fuentes ? JSON.parse(m.fuentes) : [], proveedor: m.proveedor })) ?? []}
       pregunta={q}
     />
   );

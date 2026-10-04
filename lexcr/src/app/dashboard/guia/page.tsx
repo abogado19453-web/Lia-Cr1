@@ -16,6 +16,7 @@ const SECCIONES = [
   { href: '/dashboard/protocolo', t: 'Protocolo', d: 'Lleve el control de escrituras por tomo y folio, su estado registral y citas de presentación. Descargue el índice de instrumentos por quincena en CSV.' },
   { href: '/dashboard/portal', t: 'Portal Cliente', d: 'Registre clientes y genere un enlace privado. El cliente solo ve los expedientes, actuaciones y documentos marcados como visibles.' },
   { href: '/dashboard/equipo', t: 'Equipo', d: 'Los administradores agregan miembros con una contraseña temporal y asignan roles.' },
+  { href: '/dashboard/ia', t: 'Inteligencia artificial', d: 'Solo administradores: agregue proveedores de IA (Claude, OpenAI, Gemini, otros compatibles o IA local con Ollama o LM Studio), pruébelos y autorice qué usuarios usa cada uno. Las claves se guardan cifradas.' },
   { href: '/dashboard/plan', t: 'Mi plan', d: 'Consulte el consumo del mes y amplíe su plan. Pague con tarjeta (activación inmediata) o por SINPE Móvil o transferencia, reportando el comprobante. Descargue los recibos de cada pago.' },
 ];
 

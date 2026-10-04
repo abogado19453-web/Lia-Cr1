@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { ArrowLeft, Download, FileDown } from 'lucide-react';
 import { requireUser } from '@/lib/auth';
 import { prisma } from '@/lib/db';
+import { proveedoresDisponibles } from '@/lib/ia-proveedores';
 import { fmtFecha } from '@/lib/fechas';
 import { DetalleDocumento } from './detalle';
 
@@ -38,6 +39,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
         analisis={doc.analisis ?? ''}
         visiblePortal={doc.visiblePortal}
         tieneTexto={!!doc.contenido?.trim()}
+        proveedores={await proveedoresDisponibles(user)}
       />
     </>
   );

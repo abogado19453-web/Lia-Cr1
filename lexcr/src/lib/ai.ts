@@ -1,8 +1,31 @@
 import 'server-only';
 import Anthropic from '@anthropic-ai/sdk';
 import { marca } from './config';
+import type { ProveedorResuelto } from './ia-proveedores';
 
-export const MODELO = process.env.CLAUDE_MODEL || 'claude-opus-5-5';
+/** Error de un proveedor compatible con OpenAI (o IA local), con su estado HTTP. */
+export class ErrorProveedor extends Error {
+  constructor(
+    message: string,
+    public status: number | null,
+    public proveedor: string,
+    public detalle = '',
+  ) {
+    super(message);
+  }
+}
+
+const clientes = new Map<string, Anthropic>();
+function clienteAnthropic(p: ProveedorResuelto) {
+  const k = p.baseUrl + '|' + p.apiKey;
+  let c = clientes.get(k);
+  if (!c) {
+    // Dirección explícita: una variable ANTHROPIC_BASE_URL del sistema no debe desviar las consultas.
+    c = new Anthropic({ apiKey: p.apiKey, authToken: null, baseURL: p.baseUrl });
+    clientes.set(k, c);
+  }
+  return c;
+}
 
 /** Dominios oficiales costarricenses permitidos para la búsqueda de jurisprudencia y normativa. */
 export const DOMINIOS_OFICIALES = [
@@ -15,31 +38,6 @@ export const DOMINIOS_OFICIALES = [
   'asamblea.go.cr',
 ];
 
-/** Respuesta 503 si la IA no está configurada; se evalúa antes de descontar cupo. */
-export function iaNoConfigurada() {
-  return process.env.ANTHROPIC_API_KEY
-    ? null
-    : Response.json(
-        { error: 'La inteligencia artificial aún no está activada: falta la clave de Anthropic (ANTHROPIC_API_KEY) en el archivo .env.' },
-        { status: 503 },
-      );
-}
-
-let cliente: Anthropic | null = null;
-export function claude() {
-  if (!process.env.ANTHROPIC_API_KEY) {
-    throw new Error('ANTHROPIC_API_KEY no está configurada en el archivo .env.');
-  }
-  // Se fija la dirección oficial: una variable ANTHROPIC_BASE_URL del sistema (definida por otras
-  // herramientas) desviaría las consultas a otro servidor. LEXCR_ANTHROPIC_BASE_URL permite cambiarla a propósito.
-  cliente ??= new Anthropic({
-    apiKey: process.env.ANTHROPIC_API_KEY,
-    authToken: null,
-    baseURL: process.env.LEXCR_ANTHROPIC_BASE_URL || 'https://api.anthropic.com',
-  });
-  return cliente;
-}
-
 const BASE = `Usted es el asistente jurídico de ${marca.nombre}, al servicio de abogados y notarios en ejercicio en Costa Rica.
 Responda en español con el léxico del foro jurídico costarricense (por ejemplo: "finca inscrita en el partido de", "cédula jurídica", "afecciones y gravámenes", "timbres de ley", "fe cartular").
 El usuario es el profesional responsable: vaya directo al análisis, sin advertencias genéricas ni recomendaciones de consultar a un abogado.
@@ -48,6 +46,8 @@ Cite artículos con su número. Si no tiene certeza del texto literal de una nor
 
 export const PROMPTS = {
   consulta: BASE,
+  jurisprudenciaSinBusqueda: `${BASE}
+Responda sobre jurisprudencia y criterios relevantes con base en su conocimiento. No dispone de búsqueda en fuentes oficiales: no invente números de voto ni fechas; cuando mencione una resolución, indique que debe verificarse en Nexus PJ o SCIJ.`,
   jurisprudencia: `${BASE}
 Su tarea es localizar jurisprudencia y criterios oficiales con la herramienta de búsqueda web, limitada a fuentes oficiales costarricenses.
 Para cada resolución relevante indique: tribunal, número de voto o resolución, fecha, tesis o criterio y su aplicación al caso. Cite únicamente lo que encontró en las fuentes; si la búsqueda no arroja resultados suficientes, dígalo.`,
@@ -76,17 +76,98 @@ export type EventoStream =
   | { t: 'error'; v: string }
   | { t: 'done' };
 
-/**
- * Ejecuta una solicitud en streaming y emite eventos NDJSON.
- * Reanuda automáticamente los turnos `pause_turn` de la búsqueda web.
- */
+export type MensajeIA = { role: 'user' | 'assistant'; content: string };
+
+type OpcionesIA = { effort?: 'low' | 'medium' | 'high' | 'xhigh' | 'max'; maxTokens?: number };
+
+/** Ejecuta una solicitud en streaming con el proveedor indicado y emite eventos NDJSON. */
 export async function* generar(
   modo: Modo,
-  mensajes: Anthropic.Beta.BetaMessageParam[],
-  opciones: { effort?: 'low' | 'medium' | 'high' | 'xhigh' | 'max'; maxTokens?: number } = {},
+  mensajes: MensajeIA[],
+  proveedor: ProveedorResuelto,
+  opciones: OpcionesIA = {},
 ): AsyncGenerator<EventoStream, string> {
-  const client = claude();
-  const historial = [...mensajes];
+  if (proveedor.tipo === 'anthropic') return yield* generarAnthropic(modo, mensajes, proveedor, opciones);
+  let texto = '';
+  let modoReal: Modo = modo;
+  if (modo === 'jurisprudencia') {
+    modoReal = 'jurisprudenciaSinBusqueda';
+    const aviso = `[${proveedor.nombre} no tiene búsqueda en fuentes oficiales: esta respuesta proviene del conocimiento del modelo y debe verificarse en Nexus PJ o SCIJ.]\n\n`;
+    texto += aviso;
+    yield { t: 'text', v: aviso };
+  }
+  texto += yield* generarCompatible(modoReal, mensajes, proveedor);
+  return texto;
+}
+
+/** Proveedores con API compatible con OpenAI (OpenAI, Gemini, OpenRouter, Ollama, LM Studio…). */
+async function* generarCompatible(modo: Modo, mensajes: MensajeIA[], p: ProveedorResuelto): AsyncGenerator<EventoStream, string> {
+  let res: Response;
+  try {
+    res = await fetch(p.baseUrl.replace(/\/+$/, '') + '/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...(p.apiKey ? { Authorization: `Bearer ${p.apiKey}` } : {}) },
+      body: JSON.stringify({ model: p.modelo, stream: true, messages: [{ role: 'system', content: PROMPTS[modo] }, ...mensajes] }),
+    });
+  } catch (e) {
+    throw new ErrorProveedor('sin conexión', null, p.nombre, `${p.baseUrl} · ${(e as Error).message}`);
+  }
+  if (!res.ok || !res.body) {
+    const cuerpo = await res.text().catch(() => '');
+    let msg = cuerpo.slice(0, 400);
+    try {
+      const j = JSON.parse(cuerpo);
+      msg = j?.error?.message || j?.message || msg;
+    } catch {}
+    throw new ErrorProveedor(msg || `HTTP ${res.status}`, res.status, p.nombre);
+  }
+  const reader = res.body.getReader();
+  const dec = new TextDecoder();
+  let buf = '';
+  let texto = '';
+  let fin: string | null = null;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buf += dec.decode(value, { stream: true });
+    let i;
+    while ((i = buf.indexOf('\n')) >= 0) {
+      const linea = buf.slice(0, i).trim();
+      buf = buf.slice(i + 1);
+      if (!linea.startsWith('data:')) continue;
+      const dato = linea.slice(5).trim();
+      if (dato === '[DONE]') continue;
+      try {
+        const j = JSON.parse(dato);
+        if (j.error) throw new ErrorProveedor(j.error.message || 'error', null, p.nombre);
+        const delta = j.choices?.[0]?.delta?.content;
+        if (typeof delta === 'string' && delta) {
+          texto += delta;
+          yield { t: 'text', v: delta };
+        }
+        fin = j.choices?.[0]?.finish_reason ?? fin;
+      } catch (e) {
+        if (e instanceof ErrorProveedor) throw e;
+      }
+    }
+  }
+  if (fin === 'length') {
+    const aviso = '\n\n[Respuesta truncada por longitud. Solicite la continuación.]';
+    texto += aviso;
+    yield { t: 'text', v: aviso };
+  }
+  return texto;
+}
+
+/** Claude: streaming, búsqueda web para jurisprudencia y reanudación de `pause_turn`. */
+async function* generarAnthropic(
+  modo: Modo,
+  mensajes: MensajeIA[],
+  proveedor: ProveedorResuelto,
+  opciones: OpcionesIA,
+): AsyncGenerator<EventoStream, string> {
+  const client = clienteAnthropic(proveedor);
+  const historial: Anthropic.Beta.BetaMessageParam[] = mensajes.map((m) => ({ role: m.role, content: m.content }));
   const fuentes = new Map<string, Fuente>();
   let texto = '';
 
@@ -100,7 +181,7 @@ export async function* generar(
   let conRespaldo = true;
   for (let vuelta = 0; vuelta < 5; vuelta++) {
     const stream = client.beta.messages.stream({
-      model: MODELO,
+      model: proveedor.modelo,
       max_tokens: opciones.maxTokens ?? 32000,
       ...(conRespaldo ? { betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' as const } : {}),
       output_config: { effort: opciones.effort ?? 'high' },
@@ -160,6 +241,16 @@ export async function* generar(
 
 /** Convierte errores del SDK en un mensaje legible. */
 export function mensajeError(e: unknown): string {
+  if (e instanceof ErrorProveedor) {
+    if (e.status === null && e.message === 'sin conexión') {
+      return `No hay conexión con «${e.proveedor}» (${e.detalle}). Si es una IA local, verifique que Ollama o LM Studio esté abierto.`;
+    }
+    if (e.status === 401 || e.status === 403) return `La clave de «${e.proveedor}» no es válida o no tiene permiso.`;
+    if (e.status === 402 || /quota|credit|billing|balance/i.test(e.message)) return `La cuenta de «${e.proveedor}» no tiene saldo o cuota disponible.`;
+    if (e.status === 404) return `«${e.proveedor}» no encontró el modelo o la dirección indicada: ${e.message}`;
+    if (e.status === 429) return `«${e.proveedor}» alcanzó su límite de uso. Intente de nuevo en unos minutos.`;
+    return `Error de «${e.proveedor}»${e.status ? ` (${e.status})` : ''}: ${e.message}`;
+  }
   if (e instanceof Anthropic.AuthenticationError) return 'La clave de API de Anthropic no es válida.';
   if (e instanceof Anthropic.RateLimitError) return 'Límite de uso alcanzado. Intente de nuevo en unos minutos.';
   if (e instanceof Anthropic.BadRequestError && /credit balance/i.test(e.message)) {

@@ -5,10 +5,12 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState, useTransition } from 'react';
 import { Plus, Send, Square, Trash2 } from 'lucide-react';
 import { borrarConversacion } from '@/app/dashboard/actions-conversacion';
+import type { ProveedorDisponible } from '@/lib/ia-catalogo';
 import { Fuentes } from './Fuentes';
+import { SelectorIA, useProveedorIA } from './SelectorIA';
 import { useIAStream, type Fuente } from './useIAStream';
 
-type Msg = { rol: string; contenido: string; fuentes: Fuente[] };
+type Msg = { rol: string; contenido: string; fuentes: Fuente[]; proveedor?: string | null };
 
 type Props = {
   modo: 'consulta' | 'jurisprudencia';
@@ -20,9 +22,11 @@ type Props = {
   inicial: Msg[];
   pregunta?: string;
   placeholder?: string;
+  proveedores: ProveedorDisponible[];
 };
 
-export function Chat({ modo, titulo, descripcion, base, conversaciones, actualId, inicial, pregunta, placeholder }: Props) {
+export function Chat({ modo, titulo, descripcion, base, conversaciones, actualId, inicial, pregunta, placeholder, proveedores }: Props) {
+  const [proveedorId, setProveedorId] = useProveedorIA(proveedores);
   const router = useRouter();
   const [mensajes, setMensajes] = useState<Msg[]>(inicial);
   const [entrada, setEntrada] = useState('');
@@ -44,10 +48,10 @@ export function Chat({ modo, titulo, descripcion, base, conversaciones, actualId
     setEntrada('');
     setMensajes((m) => [...m, { rol: 'user', contenido: texto, fuentes: [] }]);
     let nuevoId: string | undefined;
-    const r = await ia.ejecutar('/api/ia/chat', { conversacionId: convId, mensaje: texto, modo }, (h) => {
+    const r = await ia.ejecutar('/api/ia/chat', { conversacionId: convId, mensaje: texto, modo, proveedorId: proveedorId || undefined }, (h) => {
       nuevoId = h.get('X-Conversacion-Id') ?? undefined;
     });
-    if (r.texto) setMensajes((m) => [...m, { rol: 'assistant', contenido: r.texto, fuentes: r.fuentes }]);
+    if (r.texto) setMensajes((m) => [...m, { rol: 'assistant', contenido: r.texto, fuentes: r.fuentes, proveedor: proveedores.find((x) => x.id === proveedorId)?.nombre }]);
     if (nuevoId && nuevoId !== convId) {
       setConvId(nuevoId);
       startTransition(() => router.replace(`${base}?c=${nuevoId}`, { scroll: false }));
@@ -88,14 +92,20 @@ export function Chat({ modo, titulo, descripcion, base, conversaciones, actualId
       </aside>
 
       <section className="order-1 flex min-h-[70vh] flex-col lg:order-2">
-        <h1 className="text-3xl font-semibold">{titulo}</h1>
-        <p className="mb-4 text-muted">{descripcion}</p>
+        <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h1 className="text-3xl font-semibold">{titulo}</h1>
+            <p className="text-muted">{descripcion}</p>
+          </div>
+          <SelectorIA proveedores={proveedores} valor={proveedorId} onChange={setProveedorId} />
+        </div>
         <div className="card flex-1 space-y-4 overflow-y-auto">
           {!mensajes.length && !ia.cargando && <p className="py-10 text-center text-muted">Escriba su consulta para comenzar.</p>}
           {mensajes.map((m, i) => (
             <div key={i} className={m.rol === 'user' ? 'ml-auto max-w-[85%] rounded-xl bg-accent/10 px-4 py-3' : 'max-w-full'}>
               <div className={m.rol === 'user' ? 'whitespace-pre-wrap' : 'prose-legal'}>{m.contenido}</div>
               <Fuentes fuentes={m.fuentes} />
+              {m.rol !== 'user' && m.proveedor && <div className="mt-1 text-xs text-muted">Respondió: {m.proveedor}</div>}
             </div>
           ))}
           {ia.cargando && (

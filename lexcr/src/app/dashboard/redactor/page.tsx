@@ -1,5 +1,6 @@
 import { requireUser } from '@/lib/auth';
 import { prisma } from '@/lib/db';
+import { proveedoresDisponibles } from '@/lib/ia-proveedores';
 import { PageHead } from '@/components/PageHead';
 import { Redactor } from './redactor';
 
@@ -16,7 +17,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ e
   return (
     <>
       <PageHead titulo="Redactor Legal" descripcion="Genere un primer borrador con estructura profesional. Las escrituras se redactan en formato de protocolo." />
-      <Redactor expedientes={expedientes} expedienteInicial={expediente} />
+      <Redactor expedientes={expedientes} expedienteInicial={expediente} proveedores={await proveedoresDisponibles(user)} />
     </>
   );
 }

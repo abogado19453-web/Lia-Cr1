@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { requireUser } from '@/lib/auth';
 import { prisma } from '@/lib/db';
+import { proveedoresDisponibles } from '@/lib/ia-proveedores';
 import { Chat } from '@/components/Chat';
 import { Biblioteca } from './biblioteca';
 
@@ -54,7 +55,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ c
         base="/dashboard/jurisprudencia"
         conversaciones={conversaciones}
         actualId={actual?.id}
-        inicial={actual?.mensajes.map((m) => ({ rol: m.rol, contenido: m.contenido, fuentes: m.fuentes ? JSON.parse(m.fuentes) : [] })) ?? []}
+        proveedores={await proveedoresDisponibles(user)}
+        inicial={actual?.mensajes.map((m) => ({ rol: m.rol, contenido: m.contenido, fuentes: m.fuentes ? JSON.parse(m.fuentes) : [], proveedor: m.proveedor })) ?? []}
         placeholder="Describa el punto jurídico. Ej.: criterio de la Sala Primera sobre prescripción de la acción de daño moral"
       />
     </>

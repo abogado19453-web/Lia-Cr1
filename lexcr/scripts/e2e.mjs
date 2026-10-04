@@ -77,7 +77,7 @@ import os from 'node:os';
   await p.check('text=Visible en el Portal Cliente >> input');
   await p.waitForTimeout(500);
   await p.click('button:has-text("Analizar")');
-  await p.waitForSelector('text=ANTHROPIC_API_KEY', { timeout: 15000 });
+  await p.waitForSelector('text=/inteligencia artificial|ANTHROPIC_API_KEY/', { timeout: 15000 });
   const [dl] = await Promise.all([p.waitForEvent('download'), p.click('text=Exportar a Word')]);
   console.log('  docx:', dl.suggestedFilename());
   step('subida, error controlado sin API key, exportación Word');
@@ -117,7 +117,7 @@ import os from 'node:os';
 
   // Asistente sin API key
   await p.goto(B + '/dashboard/asistente?q=' + encodeURIComponent('Requisitos de un poder especial'));
-  await p.waitForSelector('text=ANTHROPIC_API_KEY', { timeout: 15000 });
+  await p.waitForSelector('text=/inteligencia artificial|ANTHROPIC_API_KEY/', { timeout: 15000 });
   step('asistente con error controlado');
 
   // Jurisprudencia biblioteca
