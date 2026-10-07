@@ -56,6 +56,17 @@ Los planes (Gratis, Profesional y Despacho), sus precios en colones y sus límit
 
 Los correos de `PLATFORM_ADMIN_EMAILS` ven el menú «Plataforma». Los métodos sin configurar no se ofrecen. El recibo que emite la plataforma no sustituye la factura electrónica de Hacienda.
 
+## Respaldos
+
+Doble clic en **`Respaldar LexCR.command`** (Mac) o `bash respaldar.sh [carpeta]`:
+
+- Copia a `Respaldos LexCR/LexCR_AAAA-MM-DD_HHMMSS` en el disco elegido (AirPort Time Capsule, disco externo o carpeta de red): código, base de datos (copia consistente con `sqlite3 .backup` y verificación de integridad), documentos subidos y `.env`.
+- No copia `node_modules` ni `.next`, que se regeneran al iniciar.
+- Conserva los últimos 10 respaldos (`LEXCR_RESPALDOS_A_CONSERVAR` para cambiarlo).
+- **Restaurar:** copiar la carpeta del respaldo a la Mac, renombrarla `LexCR` y abrir `Iniciar LexCR.command`.
+
+El respaldo incluye `.env` (clave de IA y el secreto que descifra las claves guardadas): mantenga el disco en un lugar seguro.
+
 ## Tecnología
 
 Next.js 15 (App Router) · TypeScript · Tailwind CSS · Prisma (SQLite en desarrollo, PostgreSQL en producción) · SDK de Anthropic (`claude-opus-5-5`, respaldo automático del servidor ante rechazos) · sesiones JWT firmadas en cookie `httpOnly` · contraseñas con bcrypt.
