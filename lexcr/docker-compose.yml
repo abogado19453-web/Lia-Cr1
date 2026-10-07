@@ -1,0 +1,15 @@
+services:
+  lexcr:
+    build: .
+    ports:
+      - "3000:3000"
+    env_file: .env
+    environment:
+      DATABASE_URL: file:/data/lexcr.db
+      UPLOAD_DIR: /data/uploads
+    volumes:
+      - lexcr-datos:/data
+    restart: unless-stopped
+
+volumes:
+  lexcr-datos:
