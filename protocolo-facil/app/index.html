@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="es-CR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Protocolo Fácil 0.3</title>
+<link rel="stylesheet" href="style.css">
+<style id="paperSize">@page { size: 216mm 330mm; margin: 0; }</style>
+</head>
+<body>
+
+<div id="notice" role="status" aria-live="polite"></div>
+
+<div class="shell">
+
+  <!-- ================= Barra lateral ================= -->
+  <nav class="sidebar" aria-label="Secciones">
+    <div class="brand">
+      <span class="brandMark">PF</span>
+      <div>
+        <strong>Protocolo Fácil</strong>
+        <small>Edición 0.3</small>
+      </div>
+    </div>
+
+    <ul class="navList">
+      <li><button data-tab="home" class="navItem">Inicio</button></li>
+      <li><button data-tab="editor" class="navItem">Escrituras</button></li>
+      <li><button data-tab="preview" class="navItem">Revisar e imprimir</button></li>
+      <li><button data-tab="tomo" class="navItem">Tomo y razones</button></li>
+      <li><button data-tab="index" class="navItem">Índice</button></li>
+      <li><button data-tab="templates" class="navItem">Plantillas</button></li>
+      <li><button data-tab="tools" class="navItem">Herramientas</button></li>
+      <li><button data-tab="settings" class="navItem">Configurar impresión</button></li>
+    </ul>
+
+    <div class="sidebarFoot">
+      <button id="backup" class="secondary">Respaldar</button>
+      <button id="restore" class="secondary">Restaurar</button>
+      <input type="file" id="restoreFile" accept="application/json,.json" hidden>
+      <button id="openHelp" class="ghost">Ayuda</button>
+    </div>
+  </nav>
+
+  <!-- ================= Área de trabajo ================= -->
+  <main class="workspace" id="workspace">
+
+    <header class="topbar">
+      <h1 id="sectionTitle">Inicio</h1>
+      <div class="topbarRight">
+        <span id="globalSave" class="saveBadge"><span>Guardado</span></span>
+        <span id="userAvatar" class="avatar">PF</span>
+      </div>
+    </header>
+
+    <!-- ---------------- Inicio ---------------- -->
+    <section id="home" class="tab active">
+      <div class="hero">
+        <p id="welcomeDate" class="muted"></p>
+        <h2 id="welcomeTitle">Todo listo para trabajar.</h2>
+        <p id="homeBookName" class="heroBook"></p>
+        <div class="heroActions">
+          <button id="homeNew">Nueva escritura</button>
+          <button id="homeAll" class="secondary">Ver escrituras</button>
+          <button id="homeCalibrate" class="ghost">Calibrar impresión</button>
+        </div>
+      </div>
+
+      <div class="statGrid">
+        <div class="stat"><strong id="statBooks">0</strong><span>Libros</span></div>
+        <div class="stat"><strong id="statDocs">0</strong><span>Escrituras del libro</span></div>
+        <div class="stat"><strong id="statDrafts">0</strong><span>En borrador</span></div>
+        <div class="stat"><strong id="statReviewed">0</strong><span>Revisadas o firmadas</span></div>
+        <div class="stat"><strong id="statFolios">0</strong><span>Folios ocupados</span></div>
+      </div>
+
+      <h3 class="blockTitle">Trabajo reciente</h3>
+      <div id="recentDocs" class="recentList"></div>
+
+      <h3 class="blockTitle">Copias de seguridad de la sesión</h3>
+      <p class="muted small">Se guarda una instantánea antes de borrar, restaurar o sustituir texto. Viven en este navegador: el respaldo JSON sigue siendo el resguardo definitivo.</p>
+      <div id="snapshotList" class="snapshotList"></div>
+    </section>
+
+    <!-- ---------------- Escrituras ---------------- -->
+    <section id="editor" class="tab">
+      <div class="editorLayout">
+
+        <aside class="docPanel">
+          <div class="bookRow">
+            <label for="book">Libro</label>
+            <select id="book"></select>
+          </div>
+          <div class="bookButtons">
+            <button id="newBook" class="ghost">Nuevo libro</button>
+            <button id="editBook" class="ghost">Editar libro</button>
+          </div>
+          <input id="search" type="search" placeholder="Buscar por número, acto u otorgantes">
+          <div class="listHead">
+            <span><strong id="listCount">0</strong> escrituras</span>
+            <button id="newDoc">Nueva</button>
+          </div>
+          <div id="docList" class="docList"></div>
+        </aside>
+
+        <div class="docMain">
+          <div id="noDoc" class="emptyState" hidden>
+            <h2>Sin escritura seleccionada</h2>
+            <p>Creá una escritura para comenzar a redactar en este libro.</p>
+            <button id="emptyNew">Crear escritura</button>
+          </div>
+
+          <form id="docForm" autocomplete="off" onsubmit="return false">
+            <div class="docHeader">
+              <h2 id="docHeading">Escritura</h2>
+              <span id="docStatusBadge" class="statusPill">Borrador</span>
+              <span id="positionSummary" class="muted small"></span>
+            </div>
+
+            <div class="grid four">
+              <label>Número<input id="number" type="number" min="1" step="1"></label>
+              <label>Fecha<input id="date" type="date"></label>
+              <label>Hora<input id="hour" type="time"></label>
+              <label>Estado
+                <select id="status">
+                  <option>Borrador</option><option>Revisada</option><option>Impresa</option>
+                  <option>Firmada</option><option>No pasó</option>
+                </select>
+              </label>
+            </div>
+
+            <details class="positionBox">
+              <summary>Posición en el protocolo</summary>
+              <div class="grid three">
+                <label>Folio inicial<input id="folio" type="number" min="1" step="1"></label>
+                <label>Cara
+                  <select id="side"><option value="front">Frente</option><option value="back">Vuelto</option></select>
+                </label>
+                <label>Renglón inicial<input id="line" type="number" min="1" step="1"></label>
+              </div>
+              <button id="suggestPosition" type="button" class="ghost">Proponer el siguiente renglón libre</button>
+            </details>
+
+            <div class="grid two">
+              <label>Acto<input id="title" type="text" maxlength="200"></label>
+              <label>Otorgantes<input id="parties" type="text" maxlength="400"></label>
+            </div>
+
+            <div class="editorToolbar">
+              <button id="upperText" type="button" class="ghost">MAYÚSCULAS</button>
+              <button id="insertDate" type="button" class="ghost">Fecha en letras</button>
+              <button id="insertHour" type="button" class="ghost">Hora en letras</button>
+              <button id="insertAmount" type="button" class="ghost">Monto en letras</button>
+              <button id="insertRazon" type="button" class="ghost">Razón de entrelineados</button>
+              <button id="findText" type="button" class="ghost">Buscar y reemplazar</button>
+              <span class="spacer"></span>
+              <span id="wordCount" class="muted small">0 palabras</span>
+              <span id="readingTime" class="muted small"></span>
+            </div>
+
+            <div id="findPanel" class="findPanel" hidden>
+              <input id="findValue" type="text" placeholder="Buscar">
+              <input id="replaceValue" type="text" placeholder="Reemplazar por">
+              <button id="findNext" type="button" class="ghost">Siguiente</button>
+              <button id="replaceOne" type="button" class="ghost">Reemplazar</button>
+              <button id="closeFind" type="button" class="ghost">Cerrar</button>
+              <span id="findFeedback" class="muted small"></span>
+            </div>
+
+            <label class="fullLabel">Texto de la escritura
+              <textarea id="text" rows="18" spellcheck="true"></textarea>
+            </label>
+            <p class="muted small">Marcado notarial: escribí «así» lo entrelineado y [[así]] lo testado. El botón «Razón de entrelineados» arma la razón final.</p>
+
+            <label class="fullLabel">Notas internas (no se imprimen)
+              <textarea id="notes" rows="3"></textarea>
+            </label>
+
+            <div class="docActions">
+              <button id="save">Guardar</button>
+              <button id="goPreview" class="secondary">Revisar folios</button>
+              <button id="importText" type="button" class="ghost">Importar TXT</button>
+              <input type="file" id="textFile" accept=".txt,text/plain" hidden>
+              <button id="exportText" type="button" class="ghost">Exportar TXT</button>
+              <button id="exportRTF" type="button" class="ghost">Exportar RTF</button>
+              <button id="makeTestimonio" type="button" class="ghost">Razón de testimonio</button>
+              <span class="spacer"></span>
+              <span id="saveStatus" class="muted small"></span>
+              <button id="deleteDoc" type="button" class="danger">Eliminar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------------- Revisar e imprimir ---------------- -->
+    <section id="preview" class="tab">
+      <div class="previewBar">
+        <button id="backEditor" class="ghost">Volver al editor</button>
+        <strong id="previewDocTitle"></strong>
+        <span class="spacer"></span>
+        <button id="zoomOut" class="ghost" aria-label="Reducir">−</button>
+        <span id="zoomValue">65 %</span>
+        <button id="zoomIn" class="ghost" aria-label="Ampliar">+</button>
+        <button id="zoomFit" class="ghost">Ajustar</button>
+        <button id="refreshPreview" class="secondary">Actualizar vista</button>
+      </div>
+
+      <div id="layoutReport" class="report"></div>
+
+      <div class="printRow">
+        <label>Desde la cara<input id="pageFrom" type="number" min="1" step="1" value="1"></label>
+        <label>Hasta la cara<input id="pageTo" type="number" min="1" step="1" value="1"></label>
+        <label>Imprimir
+          <select id="printSide">
+            <option value="all">Todas las caras</option>
+            <option value="front">Solo frentes</option>
+            <option value="back">Solo vueltos</option>
+          </select>
+        </label>
+        <button id="print">Imprimir</button>
+        <button id="previewCalibrate" class="ghost">Calibración</button>
+      </div>
+
+      <div id="pages" class="pages"></div>
+    </section>
+
+    <!-- ---------------- Tomo y razones ---------------- -->
+    <section id="tomo" class="tab">
+      <div class="card">
+        <h2>Datos del tomo</h2>
+        <form id="tomoForm" class="grid three" onsubmit="return false">
+          <label>Número de tomo<input id="tomoNumber" type="number" min="1" step="1"></label>
+          <label>Folios del tomo<input id="tomoFolios" type="number" min="1" step="1"></label>
+          <label>Folios ocupados<input id="tomoUsed" type="text" readonly></label>
+        </form>
+        <button id="saveTomo">Guardar datos del tomo</button>
+      </div>
+
+      <div class="card">
+        <h2>Razón de apertura</h2>
+        <div class="grid three">
+          <label>Fecha<input id="aperturaDate" type="date"></label>
+          <label>Hora<input id="aperturaTime" type="time" value="08:00"></label>
+          <label class="selfEnd"><button id="genApertura" class="secondary">Generar</button></label>
+        </div>
+        <textarea id="aperturaText" rows="6" placeholder="La razón generada aparece aquí y puede editarse."></textarea>
+        <div class="rowActions">
+          <button id="saveApertura" class="ghost">Guardar en el libro</button>
+          <button id="copyApertura" class="ghost">Copiar</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Razón de cierre</h2>
+        <div class="grid three">
+          <label>Fecha<input id="cierreDate" type="date"></label>
+          <label>Hora<input id="cierreTime" type="time" value="16:00"></label>
+          <label>Motivo<input id="cierreMotivo" type="text" value="por agotamiento de los folios del tomo"></label>
+        </div>
+        <button id="genCierre" class="secondary">Generar</button>
+        <textarea id="cierreText" rows="6"></textarea>
+        <div class="rowActions">
+          <button id="saveCierre" class="ghost">Guardar en el libro</button>
+          <button id="copyCierre" class="ghost">Copiar</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Mapa de folios</h2>
+        <p class="muted small">Ocupación calculada con el perfil de papel activo. Los choques de renglón se muestran en rojo.</p>
+        <div id="folioMap" class="folioMap"></div>
+      </div>
+    </section>
+
+    <!-- ---------------- Índice ---------------- -->
+    <section id="index" class="tab">
+      <div class="card">
+        <div class="cardHead">
+          <div>
+            <h2 id="indexBookName">Índice</h2>
+            <p id="indexCount" class="muted small"></p>
+          </div>
+          <div class="rowActions">
+            <button id="exportIndex" class="secondary">Descargar CSV</button>
+            <button id="printIndex" class="ghost">Imprimir índice</button>
+          </div>
+        </div>
+        <div class="tableWrap"><table id="indexTable"><thead></thead><tbody></tbody></table></div>
+      </div>
+    </section>
+
+    <!-- ---------------- Plantillas ---------------- -->
+    <section id="templates" class="tab">
+      <div class="card">
+        <h2>Mis plantillas</h2>
+        <div class="grid three">
+          <label>Plantilla<select id="templateSelect"></select></label>
+          <label>Nombre<input id="templateName" type="text" maxlength="120"></label>
+          <label class="selfEnd"><button id="newTemplate" class="ghost">Nueva</button></label>
+        </div>
+        <textarea id="templateText" rows="14" placeholder="Campos: {Numero} {NumeroOrdinal} {Fecha} {Hora} {FechaHora} {Notario} {Carne} {Cedula} {Lugar} {Oficina} {Otorgantes} {Acto} {Folio} {Cara} {Tomo}"></textarea>
+        <div class="rowActions">
+          <button id="saveTemplate">Guardar plantilla</button>
+          <button id="useTemplate" class="secondary">Usar en la escritura actual</button>
+          <button id="loadSamples" class="ghost">Cargar modelos de ejemplo</button>
+          <button id="deleteTemplate" class="danger">Eliminar</button>
+        </div>
+        <p class="muted small">Los modelos de ejemplo son estructuras de trabajo con marcadores entre corchetes; no son fórmulas verificadas para un caso concreto.</p>
+      </div>
+    </section>
+
+    <!-- ---------------- Herramientas ---------------- -->
+    <section id="tools" class="tab">
+      <div class="card">
+        <h2>Datos del notario</h2>
+        <div class="grid three">
+          <label>Nombre completo<input id="notary" type="text" maxlength="200"></label>
+          <label>Cédula de identidad<input id="notaryCedula" type="text" maxlength="40"></label>
+          <label>Carné<input id="notaryCarne" type="text" maxlength="40"></label>
+          <label>Lugar (ciudad)<input id="place" type="text" maxlength="120"></label>
+          <label>Oficina<input id="notaryOffice" type="text" maxlength="200"></label>
+        </div>
+        <button id="saveNotary">Guardar datos</button>
+      </div>
+
+      <div class="card">
+        <h2>Números y fechas en letras</h2>
+        <div class="grid three">
+          <label>Entero<input id="numeric" type="text" inputmode="numeric"></label>
+          <label class="selfEnd"><button id="convertNumber" class="ghost">Convertir</button></label>
+          <p id="words" class="result"></p>
+        </div>
+        <div class="grid three">
+          <label>Importe<input id="amountValue" type="text" placeholder="1 234 567,89"></label>
+          <label>Moneda
+            <select id="amountCurrency"><option value="CRC">Colones</option><option value="USD">Dólares</option><option value="EUR">Euros</option></select>
+          </label>
+          <label class="selfEnd"><button id="convertAmount" class="ghost">Convertir</button></label>
+        </div>
+        <p id="amountResult" class="result"></p>
+        <div class="grid three">
+          <label>Fecha<input id="dateTool" type="date"></label>
+          <label>Hora<input id="hourTool" type="time"></label>
+          <label class="selfEnd"><button id="convertDate" class="ghost">Convertir</button></label>
+        </div>
+        <p id="dateResult" class="result"></p>
+      </div>
+
+      <div class="card">
+        <h2>Estimación de honorarios y timbres</h2>
+        <p class="muted small">Tarifas <strong>editables</strong>. Los valores iniciales son una base de trabajo: confrontá el arancel y la normativa tributaria vigentes antes de liquidar.</p>
+        <div class="grid three">
+          <label>Cuantía del acto<input id="feeAmount" type="text" placeholder="25 000 000"></label>
+          <label class="selfEnd"><button id="calcFee" class="secondary">Calcular</button></label>
+          <label class="selfEnd"><button id="editTariff" class="ghost">Editar tarifas</button></label>
+        </div>
+        <div id="feeResult" class="tableWrap"></div>
+        <div id="tariffEditor" class="tariffEditor" hidden></div>
+      </div>
+    </section>
+
+    <!-- ---------------- Configurar impresión ---------------- -->
+    <section id="settings" class="tab">
+      <div class="card">
+        <div class="cardHead">
+          <h2>Perfil de papel</h2>
+          <button id="settingsHelp" class="ghost">Cómo calibrar</button>
+        </div>
+        <form id="profileForm">
+          <div class="grid three">
+            <label>Ancho (mm)<input name="width" type="number" step="0.1"></label>
+            <label>Alto (mm)<input name="height" type="number" step="0.1"></label>
+            <label>Renglones<input name="rows" type="number" step="1" min="1"></label>
+            <label>Separación entre renglones (mm)<input name="pitch" type="number" step="0.1"></label>
+            <label>Fuente<input name="font" type="text" maxlength="100"></label>
+            <label>Tamaño (pt)<input name="fontSize" type="number" step="0.5"></label>
+          </div>
+          <div class="checkRow">
+            <label><input name="numberLines" type="checkbox"> Numerar renglones al imprimir</label>
+            <label><input name="justify" type="checkbox"> Justificar el texto</label>
+            <label><input name="fill" type="checkbox"> Completar el último renglón con guiones</label>
+          </div>
+          <div id="sideSettings"></div>
+          <div class="rowActions">
+            <button type="submit">Guardar perfil</button>
+            <button id="calFront" type="button" class="ghost">Prueba de frente</button>
+            <button id="calBack" type="button" class="ghost">Prueba de vuelto</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ================= Ventanas modales ================= -->
+<div id="helpModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="helpTitle" hidden>
+  <div class="modalBox">
+    <h2 id="helpTitle">Un paso a la vez</h2>
+    <div class="guideStep"><strong></strong><p></p></div>
+    <div class="guideStep"><strong></strong><p></p></div>
+    <div class="guideStep"><strong></strong><p></p></div>
+    <div class="rowActions">
+      <button id="helpDone">Entendido</button>
+      <button id="closeHelp" class="ghost">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<div id="bookModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="bookModalTitle" hidden>
+  <div class="modalBox">
+    <h2 id="bookModalTitle">Nuevo libro</h2>
+    <form id="bookModalForm">
+      <label>Nombre o número del libro<input id="bookNameInput" type="text" maxlength="120" required></label>
+      <label>Número de tomo<input id="bookTomoInput" type="number" min="1" step="1" value="1"></label>
+      <label>Cantidad de folios<input id="bookFoliosInput" type="number" min="1" step="1" value="100"></label>
+      <div class="rowActions">
+        <button id="bookSubmit" type="submit">Crear libro</button>
+        <button id="closeBookModal" type="button" class="ghost">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="textModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="textModalTitle" hidden>
+  <div class="modalBox wide">
+    <h2 id="textModalTitle">Texto generado</h2>
+    <textarea id="textModalBody" rows="10"></textarea>
+    <div class="rowActions">
+      <button id="textModalInsert">Insertar en la escritura</button>
+      <button id="textModalCopy" class="ghost">Copiar</button>
+      <button id="closeTextModal" class="ghost">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<div id="printArea"></div>
+
+<script src="engine.js"></script>
+<script src="notarial.js"></script>
+<script src="store.js"></script>
+<script src="ui.js"></script>
+</body>
+</html>

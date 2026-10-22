@@ -1,0 +1,3288 @@
+<!doctype html>
+<html lang="es-CR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Protocolo Fácil 0.3</title>
+<style>
+/* Protocolo Fácil 0.3 — hoja de estilo única.
+   Pensada para Safari en Mac, con tipografía grande y alto contraste. */
+
+:root {
+  --bg: #f4f1ea;
+  --panel: #ffffff;
+  --ink: #1d1b16;
+  --muted: #5f5a4e;
+  --line: #ddd6c7;
+  --accent: #7a5c2e;
+  --accent-soft: #f0e7d6;
+  --ok: #2f6b3a;
+  --warn: #8a5a00;
+  --danger: #9b2c2c;
+  --radius: 12px;
+  --shadow: 0 1px 2px rgba(0, 0, 0, .06), 0 8px 24px rgba(0, 0, 0, .05);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+h1, h2, h3 { margin: 0 0 .4em; line-height: 1.25; }
+h1 { font-size: 1.35rem; }
+h2 { font-size: 1.15rem; }
+h3 { font-size: 1rem; }
+p { margin: 0 0 .7em; }
+.muted { color: var(--muted); }
+.small { font-size: .85rem; }
+.spacer { flex: 1; }
+.result { font-size: 1.05rem; min-height: 1.5em; }
+
+/* ------------------------- Estructura ------------------------- */
+
+.shell { display: flex; min-height: 100vh; }
+
+.sidebar {
+  width: 232px;
+  flex: 0 0 232px;
+  background: var(--panel);
+  border-right: 1px solid var(--line);
+  padding: 18px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand small { display: block; color: var(--muted); font-size: .8rem; }
+.brandMark {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: var(--accent); color: #fff;
+  display: grid; place-items: center; font-weight: 700;
+}
+
+.navList { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.navItem {
+  width: 100%; text-align: left; background: none; border: 0;
+  padding: 10px 12px; border-radius: 10px; font-size: .97rem; color: var(--ink);
+  cursor: pointer;
+}
+.navItem:hover { background: var(--accent-soft); }
+.navItem[aria-current="page"] { background: var(--accent); color: #fff; font-weight: 600; }
+
+.sidebarFoot { margin-top: auto; display: grid; gap: 8px; }
+
+.workspace { flex: 1; min-width: 0; padding: 0 28px 48px; }
+
+.topbar {
+  position: sticky; top: 0; z-index: 5;
+  display: flex; align-items: center; gap: 12px;
+  padding: 16px 0; background: var(--bg);
+  border-bottom: 1px solid var(--line); margin-bottom: 20px;
+}
+.topbarRight { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+
+.saveBadge {
+  font-size: .82rem; color: var(--ok);
+  background: #e8f1e9; border-radius: 999px; padding: 4px 12px;
+}
+.saveBadge.pending { color: var(--warn); background: #faf0dc; }
+.saveBadge.error { color: var(--danger); background: #fbe9e9; }
+
+.avatar {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: var(--accent-soft); color: var(--accent);
+  display: grid; place-items: center; font-weight: 700; font-size: .85rem;
+}
+
+.tab { display: none; }
+.tab.active { display: block; }
+
+/* ------------------------- Controles ------------------------- */
+
+button {
+  font: inherit; cursor: pointer;
+  border: 1px solid var(--accent); background: var(--accent); color: #fff;
+  padding: 9px 16px; border-radius: 10px;
+}
+button:hover { filter: brightness(1.08); }
+button:disabled { opacity: .45; cursor: not-allowed; filter: none; }
+button.secondary { background: var(--accent-soft); color: var(--accent); border-color: var(--accent-soft); }
+button.ghost { background: transparent; color: var(--ink); border-color: var(--line); }
+button.danger { background: transparent; color: var(--danger); border-color: #e4b9b9; }
+button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 3px solid #b48a4a; outline-offset: 2px;
+}
+
+input, select, textarea {
+  font: inherit; width: 100%;
+  padding: 9px 11px; border: 1px solid var(--line); border-radius: 9px;
+  background: #fff; color: var(--ink);
+}
+textarea { resize: vertical; line-height: 1.6; }
+#text { font-family: ui-serif, Georgia, "Times New Roman", serif; font-size: 1.02rem; }
+
+label { display: block; font-size: .87rem; color: var(--muted); }
+label input, label select, label textarea { margin-top: 4px; }
+.fullLabel { display: block; margin: 14px 0; }
+.selfEnd { align-self: end; }
+.selfEnd button { width: 100%; }
+
+.grid { display: grid; gap: 12px; }
+.grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.grid.four { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+.card {
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 18px; margin-bottom: 18px; box-shadow: var(--shadow);
+}
+.cardHead { display: flex; align-items: flex-start; gap: 12px; justify-content: space-between; }
+.rowActions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.checkRow { display: flex; flex-wrap: wrap; gap: 16px; margin: 14px 0; }
+.checkRow label { display: flex; align-items: center; gap: 7px; color: var(--ink); }
+.checkRow input { width: auto; }
+
+/* ------------------------- Inicio ------------------------- */
+
+.hero {
+  background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 22px; box-shadow: var(--shadow); margin-bottom: 18px;
+}
+.hero h2 { font-size: 1.5rem; }
+.heroBook { color: var(--accent); font-weight: 600; }
+.heroActions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+
+.statGrid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin-bottom: 22px; }
+.stat {
+  background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 14px; text-align: center;
+}
+.stat strong { display: block; font-size: 1.6rem; color: var(--accent); }
+.stat span { font-size: .8rem; color: var(--muted); }
+
+.blockTitle { margin: 18px 0 10px; }
+.recentList, .snapshotList { display: grid; gap: 8px; }
+.recentRow, .snapshotRow {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px;
+}
+.recentInfo { flex: 1; min-width: 0; }
+.recentInfo strong { display: block; }
+.recentInfo small { color: var(--muted); }
+
+.statusPill {
+  font-size: .78rem; padding: 3px 10px; border-radius: 999px;
+  background: #efe9dc; color: var(--muted); white-space: nowrap;
+}
+.statusPill.reviewed { background: #e4efe6; color: var(--ok); }
+.statusPill.signed { background: #e6ecf7; color: #2a4b8d; }
+
+.emptyState {
+  background: var(--panel); border: 1px dashed var(--line); border-radius: var(--radius);
+  padding: 34px; text-align: center;
+}
+
+/* ------------------------- Editor ------------------------- */
+
+.editorLayout { display: grid; grid-template-columns: 290px minmax(0, 1fr); gap: 18px; align-items: start; }
+
+.docPanel {
+  background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 14px; display: grid; gap: 10px; position: sticky; top: 76px;
+}
+.bookButtons { display: flex; gap: 8px; }
+.bookButtons button { flex: 1; padding: 7px 8px; font-size: .85rem; }
+.listHead { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.listHead button { padding: 6px 12px; font-size: .85rem; }
+.docList { display: grid; gap: 6px; max-height: 52vh; overflow: auto; }
+.docItem {
+  display: block; width: 100%; text-align: left;
+  background: transparent; color: var(--ink); border: 1px solid transparent;
+  border-radius: 9px; padding: 8px 10px;
+}
+.docItem:hover { background: var(--accent-soft); }
+.docItem.selected { background: var(--accent-soft); border-color: var(--accent); }
+.docItem strong { display: block; font-size: .92rem; }
+.docItem small { color: var(--muted); font-size: .78rem; }
+
+.docMain {
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 18px; box-shadow: var(--shadow);
+}
+.docHeader { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+.positionBox { margin: 14px 0; border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; }
+.positionBox summary { cursor: pointer; font-size: .9rem; color: var(--accent); }
+.positionBox .grid { margin: 12px 0; }
+
+.editorToolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 14px 0 6px; }
+.editorToolbar button { padding: 6px 11px; font-size: .84rem; }
+
+.findPanel {
+  display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+  background: var(--accent-soft); border-radius: 10px; padding: 10px; margin-bottom: 10px;
+}
+.findPanel input { width: auto; flex: 1 1 160px; }
+
+.docActions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 16px; }
+
+/* ------------------------- Vista e impresión ------------------------- */
+
+.previewBar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 14px; }
+.printRow { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; margin: 14px 0; }
+.printRow label { flex: 0 0 150px; }
+.report { display: grid; gap: 6px; margin-bottom: 10px; }
+.report .ok { color: var(--ok); }
+.report .warning { color: var(--warn); font-weight: 600; }
+.report .error { color: var(--danger); font-weight: 600; }
+
+.pages { display: grid; gap: 22px; justify-items: center; }
+.pageLabel { font-size: .85rem; color: var(--muted); text-align: center; margin-bottom: 6px; }
+.pageFrame { overflow: hidden; border: 1px solid var(--line); background: #fff; box-shadow: var(--shadow); }
+.pageFrame > .page { transform-origin: top left; }
+
+.page { position: relative; background: #fff; overflow: hidden; }
+.protocolLine { position: absolute; white-space: pre; }
+.protocolLine.justified { display: flex; justify-content: space-between; white-space: normal; }
+.guide { position: absolute; border-bottom: .2mm dotted #c9c2b2; height: 0; }
+.lineNumber { position: absolute; font-size: 7pt; color: #9a9387; }
+.calLabel { position: absolute; font: 9pt/1.2 monospace; color: #444; }
+
+.folioMap { display: grid; gap: 6px; }
+.folioRow {
+  display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+  border: 1px solid var(--line); border-radius: 9px; padding: 8px 12px;
+}
+.folioRow.conflict { border-color: var(--danger); background: #fdf2f2; }
+.folioRow strong { min-width: 70px; }
+
+.tableWrap { overflow: auto; }
+table { border-collapse: collapse; width: 100%; font-size: .88rem; }
+th, td { border: 1px solid var(--line); padding: 6px 9px; text-align: left; white-space: nowrap; }
+th { background: var(--accent-soft); color: var(--accent); }
+
+.tariffEditor { margin-top: 14px; display: grid; gap: 10px; }
+
+/* ------------------------- Avisos y modales ------------------------- */
+
+#notice {
+  display: none; position: fixed; top: 14px; left: 50%; transform: translateX(-50%);
+  z-index: 100; max-width: min(640px, 92vw);
+  background: #243; color: #fff; padding: 12px 42px 12px 16px;
+  border-radius: 10px; box-shadow: var(--shadow); white-space: pre-line;
+}
+#notice.error { background: var(--danger); }
+.toastClose {
+  position: absolute; top: 6px; right: 8px;
+  background: transparent; border: 0; color: inherit; font-size: 1.2rem; padding: 0 6px;
+}
+
+.modal {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(29, 27, 22, .45);
+  display: grid; place-items: center; padding: 20px;
+}
+.modal[hidden] { display: none; }
+.modalBox {
+  background: var(--panel); border-radius: var(--radius);
+  padding: 22px; width: min(520px, 100%); box-shadow: var(--shadow);
+  max-height: 90vh; overflow: auto;
+}
+.modalBox.wide { width: min(760px, 100%); }
+.modalBox label { margin-bottom: 12px; }
+.guideStep { border-left: 3px solid var(--accent); padding-left: 12px; margin-bottom: 14px; }
+
+/* ------------------------- Impresión ------------------------- */
+
+#printArea { display: none; }
+
+@media print {
+  body { background: #fff; }
+  .shell, #notice, .modal { display: none !important; }
+  #printArea { display: block; }
+  #printArea .page { page-break-after: always; break-after: page; }
+  #printArea .page:last-child { page-break-after: auto; break-after: auto; }
+  .page.calibration .guide { border-bottom-color: #bbb; }
+  .page:not(.calibration) .guide { display: none; }
+}
+
+/* ------------------------- Ventanas angostas ------------------------- */
+
+@media (max-width: 1100px) {
+  .statGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .editorLayout { grid-template-columns: 1fr; }
+  .docPanel { position: static; }
+  .grid.four, .grid.three { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 760px) {
+  .shell { flex-direction: column; }
+  .sidebar { width: 100%; flex: none; height: auto; position: static; border-right: 0; border-bottom: 1px solid var(--line); }
+  .navList { grid-template-columns: repeat(2, minmax(0, 1fr)); display: grid; }
+  .workspace { padding: 0 16px 40px; }
+  .grid.two, .grid.three, .grid.four { grid-template-columns: 1fr; }
+}
+
+</style>
+<style id="paperSize">@page { size: 216mm 330mm; margin: 0; }</style>
+</head>
+<body>
+
+<div id="notice" role="status" aria-live="polite"></div>
+
+<div class="shell">
+
+  <!-- ================= Barra lateral ================= -->
+  <nav class="sidebar" aria-label="Secciones">
+    <div class="brand">
+      <span class="brandMark">PF</span>
+      <div>
+        <strong>Protocolo Fácil</strong>
+        <small>Edición 0.3</small>
+      </div>
+    </div>
+
+    <ul class="navList">
+      <li><button data-tab="home" class="navItem">Inicio</button></li>
+      <li><button data-tab="editor" class="navItem">Escrituras</button></li>
+      <li><button data-tab="preview" class="navItem">Revisar e imprimir</button></li>
+      <li><button data-tab="tomo" class="navItem">Tomo y razones</button></li>
+      <li><button data-tab="index" class="navItem">Índice</button></li>
+      <li><button data-tab="templates" class="navItem">Plantillas</button></li>
+      <li><button data-tab="tools" class="navItem">Herramientas</button></li>
+      <li><button data-tab="settings" class="navItem">Configurar impresión</button></li>
+    </ul>
+
+    <div class="sidebarFoot">
+      <button id="backup" class="secondary">Respaldar</button>
+      <button id="restore" class="secondary">Restaurar</button>
+      <input type="file" id="restoreFile" accept="application/json,.json" hidden>
+      <button id="openHelp" class="ghost">Ayuda</button>
+    </div>
+  </nav>
+
+  <!-- ================= Área de trabajo ================= -->
+  <main class="workspace" id="workspace">
+
+    <header class="topbar">
+      <h1 id="sectionTitle">Inicio</h1>
+      <div class="topbarRight">
+        <span id="globalSave" class="saveBadge"><span>Guardado</span></span>
+        <span id="userAvatar" class="avatar">PF</span>
+      </div>
+    </header>
+
+    <!-- ---------------- Inicio ---------------- -->
+    <section id="home" class="tab active">
+      <div class="hero">
+        <p id="welcomeDate" class="muted"></p>
+        <h2 id="welcomeTitle">Todo listo para trabajar.</h2>
+        <p id="homeBookName" class="heroBook"></p>
+        <div class="heroActions">
+          <button id="homeNew">Nueva escritura</button>
+          <button id="homeAll" class="secondary">Ver escrituras</button>
+          <button id="homeCalibrate" class="ghost">Calibrar impresión</button>
+        </div>
+      </div>
+
+      <div class="statGrid">
+        <div class="stat"><strong id="statBooks">0</strong><span>Libros</span></div>
+        <div class="stat"><strong id="statDocs">0</strong><span>Escrituras del libro</span></div>
+        <div class="stat"><strong id="statDrafts">0</strong><span>En borrador</span></div>
+        <div class="stat"><strong id="statReviewed">0</strong><span>Revisadas o firmadas</span></div>
+        <div class="stat"><strong id="statFolios">0</strong><span>Folios ocupados</span></div>
+      </div>
+
+      <h3 class="blockTitle">Trabajo reciente</h3>
+      <div id="recentDocs" class="recentList"></div>
+
+      <h3 class="blockTitle">Copias de seguridad de la sesión</h3>
+      <p class="muted small">Se guarda una instantánea antes de borrar, restaurar o sustituir texto. Viven en este navegador: el respaldo JSON sigue siendo el resguardo definitivo.</p>
+      <div id="snapshotList" class="snapshotList"></div>
+    </section>
+
+    <!-- ---------------- Escrituras ---------------- -->
+    <section id="editor" class="tab">
+      <div class="editorLayout">
+
+        <aside class="docPanel">
+          <div class="bookRow">
+            <label for="book">Libro</label>
+            <select id="book"></select>
+          </div>
+          <div class="bookButtons">
+            <button id="newBook" class="ghost">Nuevo libro</button>
+            <button id="editBook" class="ghost">Editar libro</button>
+          </div>
+          <input id="search" type="search" placeholder="Buscar por número, acto u otorgantes">
+          <div class="listHead">
+            <span><strong id="listCount">0</strong> escrituras</span>
+            <button id="newDoc">Nueva</button>
+          </div>
+          <div id="docList" class="docList"></div>
+        </aside>
+
+        <div class="docMain">
+          <div id="noDoc" class="emptyState" hidden>
+            <h2>Sin escritura seleccionada</h2>
+            <p>Creá una escritura para comenzar a redactar en este libro.</p>
+            <button id="emptyNew">Crear escritura</button>
+          </div>
+
+          <form id="docForm" autocomplete="off" onsubmit="return false">
+            <div class="docHeader">
+              <h2 id="docHeading">Escritura</h2>
+              <span id="docStatusBadge" class="statusPill">Borrador</span>
+              <span id="positionSummary" class="muted small"></span>
+            </div>
+
+            <div class="grid four">
+              <label>Número<input id="number" type="number" min="1" step="1"></label>
+              <label>Fecha<input id="date" type="date"></label>
+              <label>Hora<input id="hour" type="time"></label>
+              <label>Estado
+                <select id="status">
+                  <option>Borrador</option><option>Revisada</option><option>Impresa</option>
+                  <option>Firmada</option><option>No pasó</option>
+                </select>
+              </label>
+            </div>
+
+            <details class="positionBox">
+              <summary>Posición en el protocolo</summary>
+              <div class="grid three">
+                <label>Folio inicial<input id="folio" type="number" min="1" step="1"></label>
+                <label>Cara
+                  <select id="side"><option value="front">Frente</option><option value="back">Vuelto</option></select>
+                </label>
+                <label>Renglón inicial<input id="line" type="number" min="1" step="1"></label>
+              </div>
+              <button id="suggestPosition" type="button" class="ghost">Proponer el siguiente renglón libre</button>
+            </details>
+
+            <div class="grid two">
+              <label>Acto<input id="title" type="text" maxlength="200"></label>
+              <label>Otorgantes<input id="parties" type="text" maxlength="400"></label>
+            </div>
+
+            <div class="editorToolbar">
+              <button id="upperText" type="button" class="ghost">MAYÚSCULAS</button>
+              <button id="insertDate" type="button" class="ghost">Fecha en letras</button>
+              <button id="insertHour" type="button" class="ghost">Hora en letras</button>
+              <button id="insertAmount" type="button" class="ghost">Monto en letras</button>
+              <button id="insertRazon" type="button" class="ghost">Razón de entrelineados</button>
+              <button id="findText" type="button" class="ghost">Buscar y reemplazar</button>
+              <span class="spacer"></span>
+              <span id="wordCount" class="muted small">0 palabras</span>
+              <span id="readingTime" class="muted small"></span>
+            </div>
+
+            <div id="findPanel" class="findPanel" hidden>
+              <input id="findValue" type="text" placeholder="Buscar">
+              <input id="replaceValue" type="text" placeholder="Reemplazar por">
+              <button id="findNext" type="button" class="ghost">Siguiente</button>
+              <button id="replaceOne" type="button" class="ghost">Reemplazar</button>
+              <button id="closeFind" type="button" class="ghost">Cerrar</button>
+              <span id="findFeedback" class="muted small"></span>
+            </div>
+
+            <label class="fullLabel">Texto de la escritura
+              <textarea id="text" rows="18" spellcheck="true"></textarea>
+            </label>
+            <p class="muted small">Marcado notarial: escribí «así» lo entrelineado y [[así]] lo testado. El botón «Razón de entrelineados» arma la razón final.</p>
+
+            <label class="fullLabel">Notas internas (no se imprimen)
+              <textarea id="notes" rows="3"></textarea>
+            </label>
+
+            <div class="docActions">
+              <button id="save">Guardar</button>
+              <button id="goPreview" class="secondary">Revisar folios</button>
+              <button id="importText" type="button" class="ghost">Importar TXT</button>
+              <input type="file" id="textFile" accept=".txt,text/plain" hidden>
+              <button id="exportText" type="button" class="ghost">Exportar TXT</button>
+              <button id="exportRTF" type="button" class="ghost">Exportar RTF</button>
+              <button id="makeTestimonio" type="button" class="ghost">Razón de testimonio</button>
+              <span class="spacer"></span>
+              <span id="saveStatus" class="muted small"></span>
+              <button id="deleteDoc" type="button" class="danger">Eliminar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------------- Revisar e imprimir ---------------- -->
+    <section id="preview" class="tab">
+      <div class="previewBar">
+        <button id="backEditor" class="ghost">Volver al editor</button>
+        <strong id="previewDocTitle"></strong>
+        <span class="spacer"></span>
+        <button id="zoomOut" class="ghost" aria-label="Reducir">−</button>
+        <span id="zoomValue">65 %</span>
+        <button id="zoomIn" class="ghost" aria-label="Ampliar">+</button>
+        <button id="zoomFit" class="ghost">Ajustar</button>
+        <button id="refreshPreview" class="secondary">Actualizar vista</button>
+      </div>
+
+      <div id="layoutReport" class="report"></div>
+
+      <div class="printRow">
+        <label>Desde la cara<input id="pageFrom" type="number" min="1" step="1" value="1"></label>
+        <label>Hasta la cara<input id="pageTo" type="number" min="1" step="1" value="1"></label>
+        <label>Imprimir
+          <select id="printSide">
+            <option value="all">Todas las caras</option>
+            <option value="front">Solo frentes</option>
+            <option value="back">Solo vueltos</option>
+          </select>
+        </label>
+        <button id="print">Imprimir</button>
+        <button id="previewCalibrate" class="ghost">Calibración</button>
+      </div>
+
+      <div id="pages" class="pages"></div>
+    </section>
+
+    <!-- ---------------- Tomo y razones ---------------- -->
+    <section id="tomo" class="tab">
+      <div class="card">
+        <h2>Datos del tomo</h2>
+        <form id="tomoForm" class="grid three" onsubmit="return false">
+          <label>Número de tomo<input id="tomoNumber" type="number" min="1" step="1"></label>
+          <label>Folios del tomo<input id="tomoFolios" type="number" min="1" step="1"></label>
+          <label>Folios ocupados<input id="tomoUsed" type="text" readonly></label>
+        </form>
+        <button id="saveTomo">Guardar datos del tomo</button>
+      </div>
+
+      <div class="card">
+        <h2>Razón de apertura</h2>
+        <div class="grid three">
+          <label>Fecha<input id="aperturaDate" type="date"></label>
+          <label>Hora<input id="aperturaTime" type="time" value="08:00"></label>
+          <label class="selfEnd"><button id="genApertura" class="secondary">Generar</button></label>
+        </div>
+        <textarea id="aperturaText" rows="6" placeholder="La razón generada aparece aquí y puede editarse."></textarea>
+        <div class="rowActions">
+          <button id="saveApertura" class="ghost">Guardar en el libro</button>
+          <button id="copyApertura" class="ghost">Copiar</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Razón de cierre</h2>
+        <div class="grid three">
+          <label>Fecha<input id="cierreDate" type="date"></label>
+          <label>Hora<input id="cierreTime" type="time" value="16:00"></label>
+          <label>Motivo<input id="cierreMotivo" type="text" value="por agotamiento de los folios del tomo"></label>
+        </div>
+        <button id="genCierre" class="secondary">Generar</button>
+        <textarea id="cierreText" rows="6"></textarea>
+        <div class="rowActions">
+          <button id="saveCierre" class="ghost">Guardar en el libro</button>
+          <button id="copyCierre" class="ghost">Copiar</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Mapa de folios</h2>
+        <p class="muted small">Ocupación calculada con el perfil de papel activo. Los choques de renglón se muestran en rojo.</p>
+        <div id="folioMap" class="folioMap"></div>
+      </div>
+    </section>
+
+    <!-- ---------------- Índice ---------------- -->
+    <section id="index" class="tab">
+      <div class="card">
+        <div class="cardHead">
+          <div>
+            <h2 id="indexBookName">Índice</h2>
+            <p id="indexCount" class="muted small"></p>
+          </div>
+          <div class="rowActions">
+            <button id="exportIndex" class="secondary">Descargar CSV</button>
+            <button id="printIndex" class="ghost">Imprimir índice</button>
+          </div>
+        </div>
+        <div class="tableWrap"><table id="indexTable"><thead></thead><tbody></tbody></table></div>
+      </div>
+    </section>
+
+    <!-- ---------------- Plantillas ---------------- -->
+    <section id="templates" class="tab">
+      <div class="card">
+        <h2>Mis plantillas</h2>
+        <div class="grid three">
+          <label>Plantilla<select id="templateSelect"></select></label>
+          <label>Nombre<input id="templateName" type="text" maxlength="120"></label>
+          <label class="selfEnd"><button id="newTemplate" class="ghost">Nueva</button></label>
+        </div>
+        <textarea id="templateText" rows="14" placeholder="Campos: {Numero} {NumeroOrdinal} {Fecha} {Hora} {FechaHora} {Notario} {Carne} {Cedula} {Lugar} {Oficina} {Otorgantes} {Acto} {Folio} {Cara} {Tomo}"></textarea>
+        <div class="rowActions">
+          <button id="saveTemplate">Guardar plantilla</button>
+          <button id="useTemplate" class="secondary">Usar en la escritura actual</button>
+          <button id="loadSamples" class="ghost">Cargar modelos de ejemplo</button>
+          <button id="deleteTemplate" class="danger">Eliminar</button>
+        </div>
+        <p class="muted small">Los modelos de ejemplo son estructuras de trabajo con marcadores entre corchetes; no son fórmulas verificadas para un caso concreto.</p>
+      </div>
+    </section>
+
+    <!-- ---------------- Herramientas ---------------- -->
+    <section id="tools" class="tab">
+      <div class="card">
+        <h2>Datos del notario</h2>
+        <div class="grid three">
+          <label>Nombre completo<input id="notary" type="text" maxlength="200"></label>
+          <label>Cédula de identidad<input id="notaryCedula" type="text" maxlength="40"></label>
+          <label>Carné<input id="notaryCarne" type="text" maxlength="40"></label>
+          <label>Lugar (ciudad)<input id="place" type="text" maxlength="120"></label>
+          <label>Oficina<input id="notaryOffice" type="text" maxlength="200"></label>
+        </div>
+        <button id="saveNotary">Guardar datos</button>
+      </div>
+
+      <div class="card">
+        <h2>Números y fechas en letras</h2>
+        <div class="grid three">
+          <label>Entero<input id="numeric" type="text" inputmode="numeric"></label>
+          <label class="selfEnd"><button id="convertNumber" class="ghost">Convertir</button></label>
+          <p id="words" class="result"></p>
+        </div>
+        <div class="grid three">
+          <label>Importe<input id="amountValue" type="text" placeholder="1 234 567,89"></label>
+          <label>Moneda
+            <select id="amountCurrency"><option value="CRC">Colones</option><option value="USD">Dólares</option><option value="EUR">Euros</option></select>
+          </label>
+          <label class="selfEnd"><button id="convertAmount" class="ghost">Convertir</button></label>
+        </div>
+        <p id="amountResult" class="result"></p>
+        <div class="grid three">
+          <label>Fecha<input id="dateTool" type="date"></label>
+          <label>Hora<input id="hourTool" type="time"></label>
+          <label class="selfEnd"><button id="convertDate" class="ghost">Convertir</button></label>
+        </div>
+        <p id="dateResult" class="result"></p>
+      </div>
+
+      <div class="card">
+        <h2>Estimación de honorarios y timbres</h2>
+        <p class="muted small">Tarifas <strong>editables</strong>. Los valores iniciales son una base de trabajo: confrontá el arancel y la normativa tributaria vigentes antes de liquidar.</p>
+        <div class="grid three">
+          <label>Cuantía del acto<input id="feeAmount" type="text" placeholder="25 000 000"></label>
+          <label class="selfEnd"><button id="calcFee" class="secondary">Calcular</button></label>
+          <label class="selfEnd"><button id="editTariff" class="ghost">Editar tarifas</button></label>
+        </div>
+        <div id="feeResult" class="tableWrap"></div>
+        <div id="tariffEditor" class="tariffEditor" hidden></div>
+      </div>
+    </section>
+
+    <!-- ---------------- Configurar impresión ---------------- -->
+    <section id="settings" class="tab">
+      <div class="card">
+        <div class="cardHead">
+          <h2>Perfil de papel</h2>
+          <button id="settingsHelp" class="ghost">Cómo calibrar</button>
+        </div>
+        <form id="profileForm">
+          <div class="grid three">
+            <label>Ancho (mm)<input name="width" type="number" step="0.1"></label>
+            <label>Alto (mm)<input name="height" type="number" step="0.1"></label>
+            <label>Renglones<input name="rows" type="number" step="1" min="1"></label>
+            <label>Separación entre renglones (mm)<input name="pitch" type="number" step="0.1"></label>
+            <label>Fuente<input name="font" type="text" maxlength="100"></label>
+            <label>Tamaño (pt)<input name="fontSize" type="number" step="0.5"></label>
+          </div>
+          <div class="checkRow">
+            <label><input name="numberLines" type="checkbox"> Numerar renglones al imprimir</label>
+            <label><input name="justify" type="checkbox"> Justificar el texto</label>
+            <label><input name="fill" type="checkbox"> Completar el último renglón con guiones</label>
+          </div>
+          <div id="sideSettings"></div>
+          <div class="rowActions">
+            <button type="submit">Guardar perfil</button>
+            <button id="calFront" type="button" class="ghost">Prueba de frente</button>
+            <button id="calBack" type="button" class="ghost">Prueba de vuelto</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ================= Ventanas modales ================= -->
+<div id="helpModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="helpTitle" hidden>
+  <div class="modalBox">
+    <h2 id="helpTitle">Un paso a la vez</h2>
+    <div class="guideStep"><strong></strong><p></p></div>
+    <div class="guideStep"><strong></strong><p></p></div>
+    <div class="guideStep"><strong></strong><p></p></div>
+    <div class="rowActions">
+      <button id="helpDone">Entendido</button>
+      <button id="closeHelp" class="ghost">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<div id="bookModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="bookModalTitle" hidden>
+  <div class="modalBox">
+    <h2 id="bookModalTitle">Nuevo libro</h2>
+    <form id="bookModalForm">
+      <label>Nombre o número del libro<input id="bookNameInput" type="text" maxlength="120" required></label>
+      <label>Número de tomo<input id="bookTomoInput" type="number" min="1" step="1" value="1"></label>
+      <label>Cantidad de folios<input id="bookFoliosInput" type="number" min="1" step="1" value="100"></label>
+      <div class="rowActions">
+        <button id="bookSubmit" type="submit">Crear libro</button>
+        <button id="closeBookModal" type="button" class="ghost">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="textModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="textModalTitle" hidden>
+  <div class="modalBox wide">
+    <h2 id="textModalTitle">Texto generado</h2>
+    <textarea id="textModalBody" rows="10"></textarea>
+    <div class="rowActions">
+      <button id="textModalInsert">Insertar en la escritura</button>
+      <button id="textModalCopy" class="ghost">Copiar</button>
+      <button id="closeTextModal" class="ghost">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<div id="printArea"></div>
+
+<script>
+/*
+ * Protocolo Fácil — núcleo de cálculo (sin DOM).
+ *
+ * Reconstrucción 0.3.0. Este módulo no toca el navegador: recibe datos y
+ * devuelve datos, de modo que pueda ejercitarse con Node en `pruebas/`.
+ *
+ * Contiene: geometría del papel de protocolo, distribución del texto por
+ * folio y cara, conversión de cantidades/fechas/horas a letras, exportación
+ * CSV/RTF y validación del archivo de respaldo.
+ */
+(function (root) {
+  'use strict';
+
+  /* ------------------------------------------------------------------ *
+   * Perfil de papel por omisión
+   * ------------------------------------------------------------------ */
+
+  const defaults = {
+    width: 216,
+    height: 330,
+    rows: 30,
+    pitch: 8.5,
+    font: 'Times New Roman',
+    fontSize: 12,
+    numberLines: false,
+    justify: true,
+    fill: false,
+    front: { left: 30, right: 20, top: 35, x: 0, y: 0 },
+    back: { left: 20, right: 30, top: 35, x: 0, y: 0 }
+  };
+
+  const STATUSES = ['Borrador', 'Revisada', 'Impresa', 'Firmada', 'No pasó'];
+  const SIDES = ['front', 'back'];
+  const MONTHS = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio',
+    'agosto', 'setiembre', 'octubre', 'noviembre', 'diciembre'];
+
+  function clone(value) {
+    return JSON.parse(JSON.stringify(value));
+  }
+
+  function normalize(text) {
+    return String(text).normalize('NFC').replace(/\r\n?/g, '\n').replace(/[\t\u00a0]/g, ' ');
+  }
+
+  /* ------------------------------------------------------------------ *
+   * Validación de la geometría
+   * ------------------------------------------------------------------ */
+
+  function validate(p) {
+    const errors = [];
+    const finite = (v, a, b) => typeof v === 'number' && Number.isFinite(v) && v >= a && v <= b;
+    const ranges = [['width', 100, 500], ['height', 100, 600], ['rows', 1, 100],
+      ['pitch', 2, 30], ['fontSize', 6, 36]];
+
+    for (const [key, min, max] of ranges) {
+      if (!finite(p[key], min, max)) errors.push('Valor inválido: ' + key);
+    }
+    if (!Number.isInteger(p.rows)) errors.push('Los renglones deben ser enteros.');
+    if (p.pitch < p.fontSize * 25.4 / 72 * 1.2) {
+      errors.push('La separación entre renglones es menor que la altura de la fuente.');
+    }
+
+    for (const side of SIDES) {
+      const s = p[side];
+      if (!s) { errors.push('Falta la cara ' + side); continue; }
+      for (const key of ['left', 'right', 'top']) {
+        if (!finite(s[key], 0, 200)) errors.push('Margen inválido: ' + side + ' ' + key);
+      }
+      for (const key of ['x', 'y']) {
+        if (!finite(s[key], -100, 100)) errors.push('Calibración inválida: ' + side + ' ' + key);
+      }
+      if (p.width - s.left - s.right < 30) errors.push('El ancho útil debe ser al menos 30 mm.');
+      if (s.left + s.x < 0 || p.width - s.right + s.x > p.width) {
+        errors.push('La calibración horizontal sale del papel.');
+      }
+      if (s.top + s.y < 0 || s.top + s.y + (p.rows - 1) * p.pitch + p.fontSize * 25.4 / 72 > p.height) {
+        errors.push('Los renglones salen del papel.');
+      }
+    }
+    if (typeof p.font !== 'string' || !p.font.trim() || p.font.length > 100) {
+      errors.push('Fuente inválida.');
+    }
+    return [...new Set(errors)];
+  }
+
+  /* ------------------------------------------------------------------ *
+   * Distribución del texto por caras
+   * ------------------------------------------------------------------ */
+
+  function wrap(text, width, measure) {
+    if (width <= 0) throw Error('Ancho útil inválido.');
+    const words = normalize(text).trim().split(/\s+/u).filter(Boolean);
+    const lines = [];
+    let line = '';
+    for (const word of words) {
+      const candidate = line ? line + ' ' + word : word;
+      if (measure(candidate) <= width) { line = candidate; continue; }
+      if (line) { lines.push(line); line = ''; }
+      if (measure(word) <= width) { line = word; continue; }
+      let chunk = '';
+      for (const ch of Array.from(word)) {
+        if (measure(ch) > width) throw Error('Un carácter excede el ancho útil.');
+        if (chunk && measure(chunk + ch) > width) { lines.push(chunk); chunk = ''; }
+        chunk += ch;
+      }
+      line = chunk;
+    }
+    if (line) lines.push(line);
+    return lines;
+  }
+
+  /**
+   * Reparte `text` a partir de `position` ({folio, side, line}) usando el
+   * perfil `p`. Devuelve un arreglo de caras: {folio, side, start, lines}.
+   * El ancho útil se recalcula en cada cara porque frente y vuelto tienen
+   * márgenes distintos.
+   */
+  function paginate(text, p, position, measure) {
+    const errors = validate(p);
+    if (errors.length) throw Error(errors.join('\n'));
+    if (!Number.isInteger(position.folio) || position.folio < 1 ||
+        !Number.isInteger(position.line) || position.line < 1 || position.line > p.rows ||
+        !SIDES.includes(position.side)) {
+      throw Error('Posición inicial inválida.');
+    }
+
+    const words = normalize(text).trim().split(/\s+/u).filter(Boolean);
+    const pages = [];
+    let index = 0;
+    let folio = position.folio;
+    let side = position.side;
+    let start = position.line;
+
+    while (index < words.length) {
+      if (pages.length >= 2000) throw Error('El documento excede 2000 caras. Divida el texto.');
+      const s = p[side];
+      const width = (p.width - s.left - s.right) * 96 / 25.4;
+      const capacity = p.rows - start + 1;
+      const lines = [];
+      let line = '';
+
+      while (index < words.length && lines.length < capacity) {
+        const word = words[index];
+        const candidate = line ? line + ' ' + word : word;
+        if (measure(candidate) <= width) { line = candidate; index++; continue; }
+        if (line) { lines.push(line); line = ''; continue; }
+        // Palabra sola más ancha que el renglón: se parte por caracteres.
+        let chunk = '';
+        let used = 0;
+        for (const ch of Array.from(word)) {
+          if (measure(ch) > width) throw Error('Un carácter excede el ancho útil.');
+          if (measure(chunk + ch) > width) break;
+          chunk += ch;
+          used += ch.length;
+        }
+        lines.push(chunk);
+        if (used === word.length) index++; else words[index] = word.slice(used);
+      }
+      if (line) lines.push(line);
+
+      pages.push({ folio, side, start, lines });
+      if (side === 'front') side = 'back';
+      else { side = 'front'; folio++; }
+      start = 1;
+    }
+    if (pages.length) pages[pages.length - 1].isLast = true;
+    return pages;
+  }
+
+  function positions(pages) {
+    return pages.flatMap(p => p.lines.map((_, i) => `${p.folio}:${p.side}:${p.start + i}`));
+  }
+
+  /** Última posición ocupada, o null si no hay texto. */
+  function endPosition(pages) {
+    const last = pages[pages.length - 1];
+    if (!last) return null;
+    return { folio: last.folio, side: last.side, line: last.start + last.lines.length - 1 };
+  }
+
+  /** Renglón inmediatamente siguiente a `position`, dando vuelta la cara. */
+  function nextPosition(position, rows) {
+    let { folio, side, line } = position;
+    line += 1;
+    if (line > rows) {
+      line = 1;
+      if (side === 'front') side = 'back';
+      else { side = 'front'; folio++; }
+    }
+    return { folio, side, line };
+  }
+
+  /* ------------------------------------------------------------------ *
+   * Cantidades, fechas y horas en letras
+   * ------------------------------------------------------------------ */
+
+  const UNITS = ['cero', 'uno', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve'];
+  const TEENS = ['diez', 'once', 'doce', 'trece', 'catorce', 'quince', 'dieciséis',
+    'diecisiete', 'dieciocho', 'diecinueve'];
+  const TWENTIES = ['veinte', 'veintiuno', 'veintidós', 'veintitrés', 'veinticuatro',
+    'veinticinco', 'veintiséis', 'veintisiete', 'veintiocho', 'veintinueve'];
+  const TENS = ['', '', '', 'treinta', 'cuarenta', 'cincuenta', 'sesenta', 'setenta',
+    'ochenta', 'noventa'];
+  const HUNDREDS = ['', 'ciento', 'doscientos', 'trescientos', 'cuatrocientos', 'quinientos',
+    'seiscientos', 'setecientos', 'ochocientos', 'novecientos'];
+
+  function numberWords(n) {
+    if (!Number.isSafeInteger(n) || Math.abs(n) > 999999999999) {
+      throw Error('Use un entero entre −999 999 999 999 y 999 999 999 999.');
+    }
+    if (n < 0) return 'menos ' + numberWords(-n);
+    if (n < 10) return UNITS[n];
+    if (n < 20) return TEENS[n - 10];
+    if (n < 30) return TWENTIES[n - 20];
+    if (n < 100) return TENS[Math.floor(n / 10)] + (n % 10 ? ' y ' + UNITS[n % 10] : '');
+    if (n === 100) return 'cien';
+    if (n < 1000) return HUNDREDS[Math.floor(n / 100)] + (n % 100 ? ' ' + numberWords(n % 100) : '');
+    const apocope = s => s.replace(/veintiuno$/, 'veintiún').replace(/uno$/, 'un');
+    if (n < 1000000) {
+      const q = Math.floor(n / 1000);
+      return (q === 1 ? 'mil' : apocope(numberWords(q)) + ' mil') +
+        (n % 1000 ? ' ' + numberWords(n % 1000) : '');
+    }
+    const q = Math.floor(n / 1000000);
+    return (q === 1 ? 'un millón' : apocope(numberWords(q)) + ' millones') +
+      (n % 1000000 ? ' ' + numberWords(n % 1000000) : '');
+  }
+
+  /** Cardinal concordado: 'm' apocopa (un, veintiún), 'f' feminiza (una, veintiuna). */
+  function cardinalWords(n, gender) {
+    const base = numberWords(n);
+    if (gender === 'f') {
+      return base.replace(/\bveintiuno\b/g, 'veintiuna')
+        .replace(/\buno\b/g, 'una')
+        .replace(/\bdoscientos\b/g, 'doscientas').replace(/\btrescientos\b/g, 'trescientas')
+        .replace(/\bcuatrocientos\b/g, 'cuatrocientas').replace(/\bquinientos\b/g, 'quinientas')
+        .replace(/\bseiscientos\b/g, 'seiscientas').replace(/\bsetecientos\b/g, 'setecientas')
+        .replace(/\bochocientos\b/g, 'ochocientas').replace(/\bnovecientos\b/g, 'novecientas');
+    }
+    if (gender === 'm') {
+      return base.replace(/\bveintiuno\b/g, 'veintiún').replace(/\buno\b/g, 'un');
+    }
+    return base;
+  }
+
+  const ORDINAL_UNITS = ['', 'primer', 'segund', 'tercer', 'cuart', 'quint', 'sext',
+    'séptim', 'octav', 'noven'];
+  const ORDINAL_TENS = ['', 'décim', 'vigésim', 'trigésim', 'cuadragésim', 'quincuagésim',
+    'sexagésim', 'septuagésim', 'octogésim', 'nonagésim'];
+  const ORDINAL_HUNDREDS = ['', 'centésim', 'ducentésim', 'tricentésim', 'cuadringentésim',
+    'quingentésim', 'sexcentésim', 'septingentésim', 'octingentésim', 'noningentésim'];
+
+  /**
+   * Ordinal en letras entre 1 y 999. `gender` 'f' (por omisión) produce
+   * "primera, segunda…", apto para cláusulas; 'm' produce "primero, segundo…".
+   */
+  function ordinalWords(n, gender) {
+    if (!Number.isInteger(n) || n < 1 || n > 999) {
+      throw Error('El ordinal admite enteros entre uno y novecientos noventa y nueve.');
+    }
+    const end = gender === 'm' ? 'o' : 'a';
+    const parts = [];
+    const h = Math.floor(n / 100);
+    const t = Math.floor((n % 100) / 10);
+    const u = n % 10;
+    if (h) parts.push(ORDINAL_HUNDREDS[h] + end);
+    if (t) parts.push(ORDINAL_TENS[t] + end);
+    if (u) {
+      // "primer"/"tercer" sólo apocopan ante sustantivo masculino suelto.
+      let word = ORDINAL_UNITS[u];
+      if (gender === 'm' && (u === 1 || u === 3)) word += 'o';
+      else word += end;
+      parts.push(word);
+    }
+    return parts.join(' ');
+  }
+
+  const CURRENCIES = {
+    CRC: { singular: 'colón', plural: 'colones', centSingular: 'céntimo', centPlural: 'céntimos' },
+    USD: { singular: 'dólar', plural: 'dólares', centSingular: 'centavo', centPlural: 'centavos' },
+    EUR: { singular: 'euro', plural: 'euros', centSingular: 'céntimo', centPlural: 'céntimos' }
+  };
+
+  /**
+   * Importe en letras, con céntimos. Acepta "1 234 567,89", "1,234,567.89"
+   * o un número. Devuelve, por ejemplo:
+   * "un millón doscientos treinta y cuatro mil quinientos sesenta y siete
+   *  colones con ochenta y nueve céntimos".
+   */
+  function amountWords(value, currency) {
+    const unit = CURRENCIES[currency || 'CRC'];
+    if (!unit) throw Error('Moneda no reconocida. Use CRC, USD o EUR.');
+
+    let whole;
+    let cents;
+    if (typeof value === 'number') {
+      if (!Number.isFinite(value)) throw Error('Importe inválido.');
+      const rounded = Math.round(Math.abs(value) * 100);
+      whole = Math.floor(rounded / 100);
+      cents = rounded % 100;
+      if (value < 0) throw Error('Ingrese un importe positivo.');
+    } else {
+      let raw = String(value).trim().replace(/[₡$€\s]/g, '');
+      if (!raw) throw Error('Ingrese un importe.');
+      // El último separador que aparezca con 1 o 2 dígitos detrás es el decimal.
+      const decimal = /[.,](\d{1,2})$/.exec(raw);
+      let centPart = '';
+      if (decimal) { centPart = decimal[1]; raw = raw.slice(0, decimal.index); }
+      const digits = raw.replace(/[.,]/g, '');
+      if (!/^\d+$/.test(digits)) throw Error('Importe inválido. Use dígitos y un separador decimal.');
+      if (digits.length > 12) throw Error('Importe demasiado grande.');
+      whole = Number(digits);
+      cents = centPart ? Number(centPart.padEnd(2, '0')) : 0;
+    }
+
+    // "un millón DE colones", pero "un millón quinientos mil colones".
+    const cardinal = cardinalWords(whole, 'm');
+    const link = /mill(ón|ones)$/.test(cardinal) ? ' de ' : ' ';
+    const head = cardinal + link + (whole === 1 ? unit.singular : unit.plural);
+    if (!cents) return head;
+    return head + ' con ' + cardinalWords(cents, 'm') + ' ' +
+      (cents === 1 ? unit.centSingular : unit.centPlural);
+  }
+
+  function parseDate(value) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value));
+    if (!m) throw Error('Fecha inválida.');
+    const y = +m[1], mo = +m[2], d = +m[3];
+    const dt = new Date(Date.UTC(y, mo - 1, d));
+    if (y < 100 || dt.getUTCFullYear() !== y || dt.getUTCMonth() !== mo - 1 || dt.getUTCDate() !== d) {
+      throw Error('Fecha inválida.');
+    }
+    return { y, mo, d };
+  }
+
+  function dateWords(value) {
+    const { y, mo, d } = parseDate(value);
+    return numberWords(d) + ' de ' + MONTHS[mo - 1] + ' de ' + numberWords(y);
+  }
+
+  /** Hora en letras para la comparecencia: "las nueve horas treinta minutos". */
+  function hourWords(value) {
+    const m = /^(\d{1,2}):(\d{2})$/.exec(String(value).trim());
+    if (!m) throw Error('Hora inválida. Use el formato 14:30.');
+    const h = +m[1], mi = +m[2];
+    if (h > 23 || mi > 59) throw Error('Hora inválida.');
+    const head = h === 1 ? 'la una hora' : 'las ' + cardinalWords(h, 'f') + ' horas';
+    if (!mi) return head;
+    return head + ' ' + cardinalWords(mi, 'm') + (mi === 1 ? ' minuto' : ' minutos');
+  }
+
+  /** Encabezado completo: "las nueve horas del cinco de marzo de dos mil veintiséis". */
+  function dateTimeWords(date, time) {
+    return hourWords(time) + ' del ' + dateWords(date);
+  }
+
+  /* ------------------------------------------------------------------ *
+   * Exportación
+   * ------------------------------------------------------------------ */
+
+  function csv(rows) {
+    return '\ufeff' + rows.map(r => r.map(v => {
+      let s = String(v ?? '');
+      if (/^[=+@-]/.test(s)) s = "'" + s; // evita fórmulas al abrir en Excel
+      return '"' + s.replace(/"/g, '""') + '"';
+    }).join(',')).join('\r\n');
+  }
+
+  function rtf(text) {
+    let s = '{\\rtf1\\ansi\\deff0{\\fonttbl{\\f0 Times New Roman;}}\\f0\\fs24 ';
+    for (let i = 0; i < text.length; i++) {
+      const c = text.charCodeAt(i);
+      if (text[i] === '\n') s += '\\par\n';
+      else if ('\\{}'.includes(text[i])) s += '\\' + text[i];
+      else if (c > 127) s += '\\u' + (c > 32767 ? c - 65536 : c) + '?';
+      else s += text[i];
+    }
+    return s + '}';
+  }
+
+  /* ------------------------------------------------------------------ *
+   * Estado persistido: esquema, migración y validación
+   * ------------------------------------------------------------------ */
+
+  const FORMAT = 'protocolo-facil';
+  const VERSION = 2;
+
+  function emptyNotary() {
+    return { name: '', carne: '', cedula: '', place: '', office: '' };
+  }
+
+  function defaultTariff() {
+    // Valores EDITABLES. Se entregan como punto de partida de trabajo y deben
+    // confrontarse con el arancel y la normativa tributaria vigentes.
+    return {
+      moneda: 'CRC',
+      honorarios: {
+        minimo: 0,
+        tramos: [
+          { hasta: 11000000, porcentaje: 2 },
+          { hasta: 22000000, porcentaje: 1.5 },
+          { hasta: 33000000, porcentaje: 1.25 },
+          { hasta: 44000000, porcentaje: 1 },
+          { hasta: null, porcentaje: 0.75 }
+        ]
+      },
+      timbres: [
+        { nombre: 'Timbre fiscal', tipo: 'porcentaje', valor: 0, nota: 'Verificar vigencia' },
+        { nombre: 'Derechos de registro', tipo: 'porcentaje', valor: 0, nota: 'Verificar vigencia' },
+        { nombre: 'Timbre Archivo Nacional', tipo: 'fijo', valor: 0, nota: 'Verificar vigencia' },
+        { nombre: 'Timbre agrario', tipo: 'porcentaje', valor: 0, nota: 'Verificar vigencia' },
+        { nombre: 'Timbre municipal', tipo: 'fijo', valor: 0, nota: 'Verificar vigencia' },
+        { nombre: 'Timbre Colegio de Abogados', tipo: 'fijo', valor: 0, nota: 'Verificar vigencia' }
+      ]
+    };
+  }
+
+  function initialState() {
+    const book = { id: 'libro-inicial', name: 'Tomo primero', tomo: 1, totalFolios: 100,
+      apertura: '', cierre: '' };
+    return {
+      format: FORMAT,
+      version: VERSION,
+      books: [book],
+      docs: [],
+      templates: [],
+      profile: clone(defaults),
+      notary: emptyNotary(),
+      tariff: defaultTariff(),
+      updated: new Date().toISOString()
+    };
+  }
+
+  /** Acepta respaldos de la edición 0.1/0.2 (formato v1) y los eleva a v2. */
+  function migrate(raw) {
+    if (!raw || typeof raw !== 'object') throw Error('Respaldo ilegible.');
+    if (raw.format === FORMAT && raw.version === VERSION) return raw;
+    if (raw.format === 'protocolo-facil-mac' && raw.version === 1) {
+      const next = {
+        format: FORMAT,
+        version: VERSION,
+        books: (raw.books || []).map((b, i) => ({
+          id: b.id, name: b.name, tomo: i + 1, totalFolios: b.totalFolios || 100,
+          apertura: '', cierre: ''
+        })),
+        docs: (raw.docs || []).map(d => ({ ...d, hour: '09:00', marginals: '' })),
+        templates: raw.templates || [],
+        profile: raw.profile || clone(defaults),
+        notary: { ...emptyNotary(), name: raw.notary || '', place: raw.place || '' },
+        tariff: defaultTariff(),
+        updated: raw.updated || new Date().toISOString()
+      };
+      return next;
+    }
+    throw Error('Respaldo incompatible. Se admite JSON de Protocolo Fácil 0.1, 0.2 o 0.3.');
+  }
+
+  function checkState(input) {
+    const s = migrate(input);
+    if (!Array.isArray(s.books) || !Array.isArray(s.docs) || !Array.isArray(s.templates)) {
+      throw Error('Respaldo incompleto.');
+    }
+    if (s.docs.length > 10000 || s.books.length > 1000 || s.templates.length > 1000) {
+      throw Error('Respaldo demasiado grande.');
+    }
+    const errors = validate(s.profile || {});
+    if (errors.length) throw Error(errors.join('\n'));
+
+    const bookIds = new Set();
+    for (const b of s.books) {
+      if (typeof b.id !== 'string' || bookIds.has(b.id) || typeof b.name !== 'string') {
+        throw Error('Libro inválido o repetido.');
+      }
+      if (!Number.isInteger(b.totalFolios) || b.totalFolios < 1 || b.totalFolios > 10000) {
+        throw Error('Cantidad de folios inválida en el libro ' + b.name + '.');
+      }
+      bookIds.add(b.id);
+    }
+
+    const docIds = new Set();
+    const numbers = new Set();
+    for (const d of s.docs) {
+      const ok = typeof d.id === 'string' && !docIds.has(d.id) && bookIds.has(d.bookId) &&
+        typeof d.text === 'string' && d.text.length <= 2000000 &&
+        Number.isInteger(d.number) && d.number >= 1 &&
+        typeof d.title === 'string' && STATUSES.includes(d.status) &&
+        Number.isInteger(d.folio) && d.folio >= 1 &&
+        Number.isInteger(d.line) && d.line >= 1 && d.line <= s.profile.rows &&
+        SIDES.includes(d.side) && typeof d.date === 'string' &&
+        typeof d.parties === 'string' && typeof d.notes === 'string';
+      if (!ok) throw Error('Escritura inválida (número ' + (d && d.number) + ').');
+      dateWords(d.date);
+      if (d.hour) hourWords(d.hour);
+      const key = d.bookId + ':' + d.number;
+      if (numbers.has(key)) throw Error('Números de escritura repetidos en el libro.');
+      numbers.add(key);
+      docIds.add(d.id);
+    }
+
+    for (const t of s.templates) {
+      if (typeof t.id !== 'string' || typeof t.name !== 'string' || typeof t.text !== 'string') {
+        throw Error('Plantilla inválida.');
+      }
+    }
+    if (!s.notary || typeof s.notary !== 'object') s.notary = emptyNotary();
+    if (!s.tariff || typeof s.tariff !== 'object') s.tariff = defaultTariff();
+    return s;
+  }
+
+  const api = {
+    defaults, STATUSES, SIDES, MONTHS, FORMAT, VERSION,
+    clone, normalize, validate, wrap, paginate, positions, endPosition, nextPosition,
+    numberWords, cardinalWords, ordinalWords, amountWords,
+    parseDate, dateWords, hourWords, dateTimeWords,
+    csv, rtf,
+    emptyNotary, defaultTariff, initialState, migrate, checkState
+  };
+
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+  root.PF = api;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+</script>
+<script>
+/*
+ * Protocolo Fácil — módulo notarial costarricense (sin DOM).
+ *
+ * Reúne lo propio del protocolo: razones de apertura y cierre del tomo,
+ * razón de entrelineados y testaduras, razón de testimonio, mapa de folios
+ * del tomo, índice de trabajo y cálculo estimado de honorarios y timbres.
+ *
+ * Advertencia de alcance: los textos son fórmulas de trabajo parametrizables,
+ * no modelos oficiales; las tarifas son valores EDITABLES por el usuario.
+ */
+(function (root) {
+  'use strict';
+
+  const PF = root.PF || (typeof require !== 'undefined' ? require('./engine.js') : null);
+  if (!PF) throw Error('engine.js debe cargarse antes que notarial.js.');
+
+  const sideWord = side => (side === 'front' ? 'frente' : 'vuelto');
+
+  /* ------------------------------------------------------------------ *
+   * Entrelineados y testaduras
+   * ------------------------------------------------------------------ */
+
+  /**
+   * Convenciones de marcado dentro del texto de la escritura:
+   *   «texto»     → entrelineado   (se lee y vale)
+   *   [[texto]]   → testadura      (no vale)
+   * Devuelve las listas y el texto limpio, sin las marcas.
+   */
+  function marks(text) {
+    const source = PF.normalize(text);
+    const entrelineados = [];
+    const testados = [];
+    for (const m of source.matchAll(/«([^»]+)»/gu)) entrelineados.push(m[1].trim());
+    for (const m of source.matchAll(/\[\[([^\]]+)\]\]/gu)) testados.push(m[1].trim());
+    const clean = source.replace(/«([^»]+)»/gu, '$1').replace(/\[\[([^\]]+)\]\]/gu, '');
+    return { entrelineados, testados, clean };
+  }
+
+  /**
+   * Razón final de entrelineados y testaduras, para cerrar la escritura.
+   * Devuelve cadena vacía si no hay marcas.
+   */
+  function razonEntrelineados(text) {
+    const { entrelineados, testados } = marks(text);
+    const partes = [];
+    if (entrelineados.length) {
+      partes.push('Entre líneas se lee: ' +
+        entrelineados.map(t => '«' + t + '»').join('; ') + '. Vale.');
+    }
+    if (testados.length) {
+      partes.push('Testado: ' + testados.map(t => '«' + t + '»').join('; ') + '. No vale.');
+    }
+    return partes.join(' ');
+  }
+
+  /* ------------------------------------------------------------------ *
+   * Razones de apertura y cierre del tomo
+   * ------------------------------------------------------------------ */
+
+  function requireNotary(notary) {
+    if (!notary || !String(notary.name || '').trim()) {
+      throw Error('Registrá primero el nombre del notario en Herramientas → Datos del notario.');
+    }
+    return notary;
+  }
+
+  /** Razón de apertura del tomo. `opts`: {date, time, folios, tomo}. */
+  function razonApertura(book, notary, opts) {
+    requireNotary(notary);
+    const o = opts || {};
+    const tomo = Number(o.tomo || book.tomo || 1);
+    const folios = Number(o.folios || book.totalFolios || 100);
+    const lugar = String(notary.place || '[Insertar Lugar]').trim();
+    const carne = String(notary.carne || '[Insertar Número de Carné]').trim();
+    const cedula = String(notary.cedula || '[Insertar Cédula de Identidad]').trim();
+    const fecha = PF.dateWords(o.date || isoToday());
+    const hora = PF.hourWords(o.time || '08:00');
+
+    return 'RAZÓN DE APERTURA. El suscrito ' + notary.name.trim().toUpperCase() +
+      ', Notario Público con oficina abierta en ' + lugar +
+      ', portador de la cédula de identidad número ' + cedula +
+      ', carné número ' + carne +
+      ', procede a abrir el tomo ' + PF.ordinalWords(tomo, 'm') +
+      ' de su protocolo, el cual consta de ' + PF.numberWords(folios) +
+      ' folios debidamente numerados y sellados por la Dirección Nacional de Notariado. ' +
+      'Esta razón se consigna en ' + lugar + ', a ' + hora + ' del ' + fecha + '.';
+  }
+
+  /** Razón de cierre del tomo. `opts`: {date, time, motivo, ultimaEscritura, ultimoFolio}. */
+  function razonCierre(book, notary, opts) {
+    requireNotary(notary);
+    const o = opts || {};
+    const tomo = Number(o.tomo || book.tomo || 1);
+    const lugar = String(notary.place || '[Insertar Lugar]').trim();
+    const fecha = PF.dateWords(o.date || isoToday());
+    const hora = PF.hourWords(o.time || '16:00');
+    const motivo = String(o.motivo || 'por agotamiento de los folios del tomo').trim();
+    const ultima = Number.isInteger(o.ultimaEscritura) && o.ultimaEscritura > 0
+      ? 'La última escritura pasada ante mí es la número ' +
+        PF.numberWords(o.ultimaEscritura) + '. '
+      : '';
+    const folio = Number.isInteger(o.ultimoFolio) && o.ultimoFolio > 0
+      ? 'El último folio utilizado es el número ' + PF.numberWords(o.ultimoFolio) + '. '
+      : '';
+
+    return 'RAZÓN DE CIERRE. El suscrito ' + notary.name.trim().toUpperCase() +
+      ', Notario Público, cierra el tomo ' + PF.ordinalWords(tomo, 'm') +
+      ' de su protocolo ' + motivo + '. ' + ultima + folio +
+      'Se consigna esta razón en ' + lugar + ', a ' + hora + ' del ' + fecha +
+      ', para los efectos del informe y entrega que corresponden ante la Dirección Nacional de Notariado.';
+  }
+
+  /* ------------------------------------------------------------------ *
+   * Testimonios
+   * ------------------------------------------------------------------ */
+
+  /**
+   * Razón de testimonio. `opts`: {ordinal (1 = primer testimonio), date, time,
+   * destino, folios}.
+   */
+  function razonTestimonio(doc, book, notary, opts) {
+    requireNotary(notary);
+    const o = opts || {};
+    const ordinal = Number.isInteger(o.ordinal) && o.ordinal > 0 ? o.ordinal : 1;
+    const lugar = String(notary.place || '[Insertar Lugar]').trim();
+    const fecha = PF.dateWords(o.date || isoToday());
+    const hora = PF.hourWords(o.time || '10:00');
+    const destino = String(o.destino || 'su presentación ante el Registro Nacional').trim();
+    const tomo = Number(book.tomo || 1);
+
+    const calificacion = ordinal === 1
+      ? 'ES PRIMER TESTIMONIO'
+      : 'ES ' + PF.ordinalWords(ordinal, 'm').toUpperCase() + ' TESTIMONIO';
+
+    return calificacion + ' de la escritura número ' + PF.numberWords(doc.number) +
+      ', otorgada ante mí, visible al folio ' + PF.numberWords(doc.folio) + ' ' +
+      sideWord(doc.side) + ' del tomo ' + PF.ordinalWords(tomo, 'm') +
+      ' de mi protocolo, que expido en ' + lugar + ', a ' + hora + ' del ' + fecha +
+      ', para ' + destino + '.';
+  }
+
+  /* ------------------------------------------------------------------ *
+   * Mapa de folios y choques de posición
+   * ------------------------------------------------------------------ */
+
+  /**
+   * Recorre las escrituras de un libro y arma el mapa de ocupación.
+   * `layout(doc)` debe devolver las caras calculadas por PF.paginate.
+   * Devuelve {entries, conflicts, lastUsed}.
+   */
+  function folioMap(docs, layout) {
+    const occupied = new Map();
+    const entries = [];
+    const conflicts = [];
+    let lastUsed = null;
+
+    const ordered = [...docs].sort((a, b) => a.number - b.number);
+    for (const doc of ordered) {
+      if (!doc.text.trim()) {
+        entries.push({ doc, pages: [], start: null, end: null });
+        continue;
+      }
+      const pages = layout(doc);
+      const end = PF.endPosition(pages);
+      for (const key of PF.positions(pages)) {
+        if (occupied.has(key)) {
+          conflicts.push({ position: key, a: occupied.get(key), b: doc.number });
+        } else {
+          occupied.set(key, doc.number);
+        }
+      }
+      entries.push({
+        doc, pages,
+        start: { folio: doc.folio, side: doc.side, line: doc.line },
+        end
+      });
+      if (end && (!lastUsed || compare(end, lastUsed) > 0)) lastUsed = end;
+    }
+    return { entries, conflicts, lastUsed };
+  }
+
+  function compare(a, b) {
+    if (a.folio !== b.folio) return a.folio - b.folio;
+    if (a.side !== b.side) return a.side === 'front' ? -1 : 1;
+    return a.line - b.line;
+  }
+
+  /** Primer renglón libre tras la última escritura del libro. */
+  function suggestStart(docs, layout, rows) {
+    const { lastUsed } = folioMap(docs, layout);
+    if (!lastUsed) return { folio: 1, side: 'front', line: 1 };
+    return PF.nextPosition(lastUsed, rows);
+  }
+
+  /* ------------------------------------------------------------------ *
+   * Índice de trabajo
+   * ------------------------------------------------------------------ */
+
+  const INDEX_HEADERS = ['Tomo', 'Libro', 'Número', 'Fecha', 'Hora', 'Acto', 'Otorgantes',
+    'Estado', 'Folio inicial', 'Cara inicial', 'Renglón inicial',
+    'Folio final', 'Cara final', 'Renglón final', 'Caras'];
+
+  function indexRows(book, docs, layout) {
+    const rows = [INDEX_HEADERS];
+    const { entries } = folioMap(docs, layout);
+    for (const e of entries) {
+      const d = e.doc;
+      rows.push([
+        book.tomo || '', book.name, d.number, d.date, d.hour || '', d.title, d.parties, d.status,
+        d.folio, sideWord(d.side), d.line,
+        e.end ? e.end.folio : '', e.end ? sideWord(e.end.side) : '', e.end ? e.end.line : '',
+        e.pages.length
+      ]);
+    }
+    return rows;
+  }
+
+  /* ------------------------------------------------------------------ *
+   * Honorarios y timbres (estimación con tarifas editables)
+   * ------------------------------------------------------------------ */
+
+  /** Honorarios por tramos sobre la cuantía. Devuelve número redondeado a céntimos. */
+  function honorarios(amount, tariff) {
+    const value = Number(amount);
+    if (!Number.isFinite(value) || value < 0) throw Error('Cuantía inválida.');
+    const conf = (tariff && tariff.honorarios) || PF.defaultTariff().honorarios;
+    const tramos = Array.isArray(conf.tramos) ? conf.tramos : [];
+    let total = 0;
+    let previous = 0;
+    for (const tramo of tramos) {
+      const limit = tramo.hasta === null || tramo.hasta === undefined ? Infinity : Number(tramo.hasta);
+      if (!Number.isFinite(limit) && limit !== Infinity) throw Error('Tramo de arancel inválido.');
+      const base = Math.max(0, Math.min(value, limit) - previous);
+      total += base * Number(tramo.porcentaje || 0) / 100;
+      previous = limit;
+      if (value <= limit) break;
+    }
+    const minimo = Number(conf.minimo || 0);
+    return Math.round(Math.max(total, minimo) * 100) / 100;
+  }
+
+  /**
+   * Desglose de timbres y derechos. Cada renglón de la tabla es
+   * {nombre, tipo:'porcentaje'|'fijo', valor, nota}.
+   */
+  function timbres(amount, tariff) {
+    const value = Number(amount);
+    if (!Number.isFinite(value) || value < 0) throw Error('Cuantía inválida.');
+    const table = (tariff && Array.isArray(tariff.timbres)) ? tariff.timbres : [];
+    const rows = table.map(item => {
+      const v = Number(item.valor || 0);
+      const monto = item.tipo === 'porcentaje'
+        ? Math.round(value * v / 100 * 100) / 100
+        : Math.round(v * 100) / 100;
+      return { nombre: item.nombre, tipo: item.tipo, valor: v, nota: item.nota || '', monto };
+    });
+    const total = Math.round(rows.reduce((sum, r) => sum + r.monto, 0) * 100) / 100;
+    return { rows, total };
+  }
+
+  /** Liquidación completa: honorarios + timbres, con totales. */
+  function liquidacion(amount, tariff) {
+    const fee = honorarios(amount, tariff);
+    const stamps = timbres(amount, tariff);
+    return {
+      cuantia: Number(amount),
+      honorarios: fee,
+      timbres: stamps.rows,
+      totalTimbres: stamps.total,
+      total: Math.round((fee + stamps.total) * 100) / 100,
+      moneda: (tariff && tariff.moneda) || 'CRC'
+    };
+  }
+
+  /* ------------------------------------------------------------------ *
+   * Sustitución de campos en plantillas
+   * ------------------------------------------------------------------ */
+
+  /**
+   * Campos admitidos: {Numero} {NumeroOrdinal} {Fecha} {Hora} {FechaHora}
+   * {Notario} {Carne} {Cedula} {Lugar} {Oficina} {Otorgantes} {Acto}
+   * {Folio} {Cara} {Tomo}. Los campos sin dato quedan intactos para que se
+   * vean pendientes en el editor.
+   */
+  function fillTemplate(source, context) {
+    const { doc, book, notary } = context;
+    const values = {
+      Numero: PF.numberWords(doc.number),
+      NumeroOrdinal: PF.ordinalWords(Math.min(doc.number, 999), 'f'),
+      Fecha: PF.dateWords(doc.date),
+      Hora: doc.hour ? PF.hourWords(doc.hour) : '',
+      FechaHora: doc.hour ? PF.dateTimeWords(doc.date, doc.hour) : '',
+      Notario: (notary.name || '').trim(),
+      Carne: (notary.carne || '').trim(),
+      Cedula: (notary.cedula || '').trim(),
+      Lugar: (notary.place || '').trim(),
+      Oficina: (notary.office || '').trim(),
+      Otorgantes: doc.parties || '',
+      Acto: doc.title || '',
+      Folio: PF.numberWords(doc.folio),
+      Cara: sideWord(doc.side),
+      Tomo: PF.ordinalWords(Number(book.tomo || 1), 'm')
+    };
+    return PF.normalize(source).replace(/\{([A-Za-zÁÉÍÓÚÑáéíóúñ]+)\}/g,
+      (match, key) => (values[key] ? values[key] : match));
+  }
+
+  function isoToday() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+
+  const api = {
+    sideWord, marks, razonEntrelineados,
+    razonApertura, razonCierre, razonTestimonio,
+    folioMap, suggestStart, compare,
+    INDEX_HEADERS, indexRows,
+    honorarios, timbres, liquidacion,
+    fillTemplate, isoToday
+  };
+
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+  root.PFN = api;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+</script>
+<script>
+/*
+ * Protocolo Fácil — capa de persistencia.
+ *
+ * Guarda el conjunto de datos en el almacenamiento local del navegador y
+ * mantiene un anillo de instantáneas para deshacer un cambio desafortunado
+ * sin depender de un respaldo externo.
+ *
+ * Límite conocido: el almacenamiento local NO equivale a archivos en disco.
+ * El respaldo JSON sigue siendo el único resguardo que sobrevive al borrado
+ * de datos del navegador.
+ */
+(function (root) {
+  'use strict';
+
+  const PF = root.PF || (typeof require !== 'undefined' ? require('./engine.js') : null);
+  if (!PF) throw Error('engine.js debe cargarse antes que store.js.');
+
+  const KEY = 'protocolo-facil-v2';
+  const LEGACY_KEY = 'protocolo-facil-mac-v1';
+  const SNAP_KEY = 'protocolo-facil-v2-snapshots';
+  const SNAP_LIMIT = 12;
+
+  function createStore(storage) {
+    const backing = storage || (typeof localStorage !== 'undefined' ? localStorage : null);
+    let writable = Boolean(backing);
+    const listeners = [];
+
+    function notify(event) {
+      for (const fn of listeners) fn(event);
+    }
+
+    /** Carga el estado; eleva un respaldo v1 si es lo único disponible. */
+    function load() {
+      if (!backing) return { state: PF.initialState(), writable: false, reason: 'sin almacenamiento' };
+      try {
+        const raw = backing.getItem(KEY) || backing.getItem(LEGACY_KEY);
+        if (!raw) return { state: PF.initialState(), writable: true };
+        return { state: PF.checkState(JSON.parse(raw)), writable: true };
+      } catch (e) {
+        writable = false;
+        return { state: PF.initialState(), writable: false, reason: e.message };
+      }
+    }
+
+    /** Escribe el estado. Devuelve true si llegó al almacenamiento. */
+    function save(state) {
+      state.updated = new Date().toISOString();
+      if (!backing || !writable) return false;
+      try {
+        backing.setItem(KEY, JSON.stringify(state));
+        notify({ type: 'saved', at: state.updated });
+        return true;
+      } catch (e) {
+        writable = false;
+        notify({ type: 'error', message: e.message });
+        return false;
+      }
+    }
+
+    /* ---------------- Instantáneas ---------------- */
+
+    function readSnapshots() {
+      if (!backing) return [];
+      try {
+        const raw = backing.getItem(SNAP_KEY);
+        const list = raw ? JSON.parse(raw) : [];
+        return Array.isArray(list) ? list : [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    /**
+     * Guarda una instantánea rotulada antes de una operación destructiva.
+     * Si el almacenamiento se llena, descarta las más antiguas y reintenta.
+     */
+    function snapshot(state, label) {
+      if (!backing || !writable) return false;
+      let list = readSnapshots();
+      list.unshift({ at: new Date().toISOString(), label: String(label || 'cambio'), state });
+      list = list.slice(0, SNAP_LIMIT);
+      while (list.length) {
+        try {
+          backing.setItem(SNAP_KEY, JSON.stringify(list));
+          notify({ type: 'snapshot', label });
+          return true;
+        } catch (e) {
+          list.pop();
+        }
+      }
+      try { backing.removeItem(SNAP_KEY); } catch (e) { /* sin espacio ni para limpiar */ }
+      return false;
+    }
+
+    function snapshots() {
+      return readSnapshots().map((s, i) => ({ index: i, at: s.at, label: s.label }));
+    }
+
+    /** Recupera una instantánea validada por índice. */
+    function restoreSnapshot(index) {
+      const list = readSnapshots();
+      const item = list[index];
+      if (!item) throw Error('La instantánea ya no está disponible.');
+      return PF.checkState(item.state);
+    }
+
+    function clearSnapshots() {
+      if (!backing) return;
+      try { backing.removeItem(SNAP_KEY); } catch (e) { /* nada que hacer */ }
+    }
+
+    return {
+      KEY, LEGACY_KEY, SNAP_KEY, SNAP_LIMIT,
+      load, save, snapshot, snapshots, restoreSnapshot, clearSnapshots,
+      isWritable: () => writable,
+      onEvent: fn => { listeners.push(fn); }
+    };
+  }
+
+  const api = { createStore, KEY, LEGACY_KEY, SNAP_KEY, SNAP_LIMIT };
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+  root.PFStore = api;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+</script>
+<script>
+/*
+ * Protocolo Fácil — controlador de interfaz.
+ *
+ * Un solo módulo: lee el estado del almacén, dibuja las pantallas y aplica
+ * los cambios. No se parchean funciones de otros archivos (ese fue el punto
+ * débil de la edición 0.2).
+ */
+(function () {
+  'use strict';
+
+  const $ = id => document.getElementById(id);
+  const uid = () => Date.now().toString(36) + '-' + Math.random().toString(36).slice(2);
+  const today = () => PFN.isoToday();
+  const sideWord = PFN.sideWord;
+
+  const SECTIONS = {
+    home: 'Inicio',
+    editor: 'Escrituras',
+    preview: 'Revisar e imprimir',
+    tomo: 'Tomo y razones',
+    index: 'Índice',
+    templates: 'Plantillas',
+    tools: 'Herramientas',
+    settings: 'Configurar impresión'
+  };
+
+  const FIELDS = ['number', 'date', 'hour', 'status', 'folio', 'side', 'line',
+    'title', 'parties', 'text', 'notes'];
+  const NUMERIC_FIELDS = ['number', 'folio', 'line'];
+
+  /* ------------------------------------------------------------------ *
+   * Estado de la sesión
+   * ------------------------------------------------------------------ */
+
+  const store = PFStore.createStore();
+  const loaded = store.load();
+  let state = loaded.state;
+  let storageOK = loaded.writable;
+  let selectedBook = state.books[0] ? state.books[0].id : null;
+  let selectedDoc = (state.docs.find(d => d.bookId === selectedBook) || {}).id || null;
+  let templateId = '';
+  let activeTab = 'home';
+  let pages = [];
+  let previewSignature = '';
+  let zoom = 0.65;
+  let saveTimer = null;
+  let noticeTimer = null;
+  let bookEditId = null;
+  let lastFocus = null;
+  let matchAt = -1;
+  let modalInsertTarget = null;
+
+  const measureCanvas = document.createElement('canvas');
+  const measureCtx = measureCanvas.getContext('2d');
+
+  /* ------------------------------------------------------------------ *
+   * Utilidades generales
+   * ------------------------------------------------------------------ */
+
+  function message(text, isError) {
+    const box = $('notice');
+    box.textContent = text;
+    box.classList.toggle('error', Boolean(isError));
+    box.style.display = 'block';
+    const close = document.createElement('button');
+    close.className = 'toastClose';
+    close.textContent = '×';
+    close.setAttribute('aria-label', 'Cerrar aviso');
+    close.onclick = () => { box.style.display = 'none'; };
+    box.append(close);
+    clearTimeout(noticeTimer);
+    if (!isError) noticeTimer = setTimeout(() => { box.style.display = 'none'; }, 9000);
+  }
+
+  /** Envuelve un manejador para que cualquier error llegue al aviso visible. */
+  function guard(fn) {
+    return function (...args) {
+      try { return fn.apply(this, args); } catch (e) { message(e.message || String(e), true); return null; }
+    };
+  }
+
+  function download(name, body, type) {
+    const blob = new Blob([body], { type });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = name;
+    document.body.append(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 30000);
+  }
+
+  function backup() {
+    download('ProtocoloFacil-respaldo-' + today() + '-' + Date.now() + '.json',
+      JSON.stringify(state, null, 2), 'application/json');
+  }
+
+  /** Instantánea interna + respaldo descargado, antes de algo irreversible. */
+  function guardChange(label) {
+    store.snapshot(state, label);
+    backup();
+    renderSnapshots();
+  }
+
+  function persist() {
+    const ok = store.save(state);
+    if (!ok) storageOK = false;
+    $('saveStatus').textContent = ok
+      ? 'Guardado localmente · ' + new Date().toLocaleTimeString('es-CR')
+      : 'Solo en memoria: descargá un respaldo';
+    refreshSaveBadge();
+    return ok;
+  }
+
+  function refreshSaveBadge() {
+    const badge = $('globalSave');
+    const text = $('saveStatus').textContent;
+    const pending = text.indexOf('pendientes') >= 0;
+    const failing = text.indexOf('memoria') >= 0;
+    badge.classList.toggle('pending', pending);
+    badge.classList.toggle('error', failing);
+    badge.querySelector('span').textContent =
+      failing ? 'Descargá un respaldo' : pending ? 'Guardando…' : 'Guardado';
+  }
+
+  const currentDoc = () => state.docs.find(d => d.id === selectedDoc) || null;
+  const currentBook = () => state.books.find(b => b.id === selectedBook) || null;
+  const bookDocs = () => state.docs.filter(d => d.bookId === selectedBook);
+
+  function layout(doc) {
+    const p = state.profile;
+    measureCtx.font = (p.fontSize * 96 / 72) + 'px "' + p.font + '"';
+    return PF.paginate(doc.text, p, { folio: doc.folio, side: doc.side, line: doc.line },
+      text => measureCtx.measureText(text).width);
+  }
+
+  function blankDoc(bookId, number) {
+    return {
+      id: uid(), bookId, number: number || 1, date: today(), hour: '09:00',
+      status: 'Borrador', folio: 1, side: 'front', line: 1,
+      title: 'Nueva escritura', parties: '', text: '', notes: '',
+      modified: new Date().toISOString()
+    };
+  }
+
+  /* ------------------------------------------------------------------ *
+   * Formulario de la escritura
+   * ------------------------------------------------------------------ */
+
+  function renderDoc() {
+    const d = currentDoc();
+    $('docForm').style.display = d ? 'block' : 'none';
+    $('noDoc').hidden = Boolean(d);
+    for (const id of ['save', 'exportText', 'exportRTF', 'deleteDoc', 'goPreview', 'makeTestimonio']) {
+      $(id).disabled = !d;
+    }
+    $('docHeading').textContent = d ? 'Escritura ' + d.number : 'Creá una escritura';
+    if (d) {
+      for (const key of FIELDS) $(key).value = d[key] != null ? d[key] : '';
+      $('docStatusBadge').textContent = d.status;
+      $('docStatusBadge').className = 'statusPill' +
+        (['Revisada', 'Impresa'].indexOf(d.status) >= 0 ? ' reviewed' : d.status === 'Firmada' ? ' signed' : '');
+      $('positionSummary').textContent =
+        'Folio ' + d.folio + ' · ' + sideWord(d.side) + ' · renglón ' + d.line;
+      $('previewDocTitle').textContent = 'Escritura ' + d.number + ' · ' + d.title;
+    }
+    refreshCounts();
+  }
+
+  function refreshCounts() {
+    const d = currentDoc();
+    const count = d ? d.text.trim().split(/\s+/).filter(Boolean).length : 0;
+    $('wordCount').textContent = count + ' palabras';
+    $('readingTime').textContent = 'Lectura estimada: ' +
+      (count < 200 ? 'menos de 1 min' : Math.ceil(count / 200) + ' min');
+  }
+
+  /** Lee el formulario, valida y vuelca sobre la escritura seleccionada. */
+  function collect() {
+    const d = currentDoc();
+    if (!d) return;
+    const next = Object.assign({}, d);
+    for (const key of FIELDS) {
+      next[key] = NUMERIC_FIELDS.indexOf(key) >= 0 ? Number($(key).value) : $(key).value;
+    }
+    if (!Number.isInteger(next.number) || next.number < 1 ||
+        !Number.isInteger(next.folio) || next.folio < 1 ||
+        !Number.isInteger(next.line) || next.line < 1 || next.line > state.profile.rows) {
+      throw Error('Revisá número, folio y renglón inicial. Deben ser enteros válidos.');
+    }
+    PF.dateWords(next.date);
+    if (next.hour) PF.hourWords(next.hour);
+    if (state.docs.some(x => x.id !== d.id && x.bookId === d.bookId && x.number === next.number)) {
+      throw Error('Ya existe una escritura con ese número en el libro.');
+    }
+    if (next.text.length > 2000000) throw Error('El texto excede los dos millones de caracteres.');
+    if (FIELDS.some(k => d[k] !== next[k])) {
+      Object.assign(d, next, { modified: new Date().toISOString() });
+    }
+    $('docHeading').textContent = 'Escritura ' + d.number;
+    refreshCounts();
+  }
+
+  function flush() {
+    clearTimeout(saveTimer);
+    collect();
+    persist();
+  }
+
+  for (const key of FIELDS) {
+    $(key).addEventListener('input', () => {
+      $('saveStatus').textContent = 'Cambios pendientes';
+      refreshSaveBadge();
+      if (['status', 'folio', 'side', 'line'].indexOf(key) >= 0) {
+        $('docStatusBadge').textContent = $('status').value;
+        $('positionSummary').textContent = 'Folio ' + $('folio').value + ' · ' +
+          sideWord($('side').value) + ' · renglón ' + $('line').value;
+      }
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(guard(() => { collect(); persist(); renderList(); }), 600);
+    });
+  }
+
+  /* ------------------------------------------------------------------ *
+   * Listas y pantalla de inicio
+   * ------------------------------------------------------------------ */
+
+  function renderBooks() {
+    const sel = $('book');
+    sel.replaceChildren();
+    for (const b of state.books) sel.add(new Option(b.name, b.id));
+    sel.value = selectedBook || '';
+  }
+
+  function renderList() {
+    const q = $('search').value.toLocaleLowerCase('es');
+    const docs = bookDocs()
+      .filter(d => (d.number + ' ' + d.title + ' ' + d.parties).toLocaleLowerCase('es').indexOf(q) >= 0)
+      .sort((a, b) => a.number - b.number);
+    const list = $('docList');
+    list.replaceChildren();
+    for (const d of docs) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'docItem' + (d.id === selectedDoc ? ' selected' : '');
+      const strong = document.createElement('strong');
+      strong.textContent = d.number + ' · ' + d.title;
+      const small = document.createElement('small');
+      small.textContent = d.date + ' · ' + d.status;
+      btn.append(strong, small);
+      btn.addEventListener('click', guard(() => {
+        flush();
+        selectedDoc = d.id;
+        renderDoc();
+        renderList();
+      }));
+      list.append(btn);
+    }
+    $('listCount').textContent = bookDocs().length;
+    renderHome();
+  }
+
+  function statusPill(status) {
+    const el = document.createElement('span');
+    el.className = 'statusPill' +
+      (['Revisada', 'Impresa'].indexOf(status) >= 0 ? ' reviewed' : status === 'Firmada' ? ' signed' : '');
+    el.textContent = status;
+    return el;
+  }
+
+  function renderHome() {
+    const docs = bookDocs();
+    const book = currentBook();
+    $('statBooks').textContent = state.books.length;
+    $('statDocs').textContent = docs.length;
+    $('statDrafts').textContent = docs.filter(d => d.status === 'Borrador').length;
+    $('statReviewed').textContent =
+      docs.filter(d => ['Revisada', 'Impresa', 'Firmada'].indexOf(d.status) >= 0).length;
+
+    let usedFolios = 0;
+    try {
+      const map = PFN.folioMap(docs, layout);
+      usedFolios = map.lastUsed ? map.lastUsed.folio : 0;
+    } catch (e) {
+      usedFolios = 0;
+    }
+    $('statFolios').textContent = usedFolios;
+
+    $('homeBookName').textContent = book ? book.name : 'Elegí o creá un libro';
+    const notaryName = (state.notary.name || '').trim();
+    $('welcomeTitle').textContent = notaryName
+      ? 'Todo listo, ' + notaryName.split(' ')[0] + '.'
+      : 'Todo listo para trabajar.';
+    const initials = notaryName.split(/\s+/).slice(0, 2).map(s => s[0] || '').join('').toUpperCase();
+    $('userAvatar').textContent = initials || 'PF';
+    $('userAvatar').setAttribute('aria-label', notaryName || 'Mi espacio');
+
+    const recent = docs
+      .filter(d => d.text.trim() || d.title !== 'Nueva escritura')
+      .sort((a, b) => String(b.modified || '').localeCompare(String(a.modified || '')))
+      .slice(0, 5);
+    const box = $('recentDocs');
+    box.replaceChildren();
+    if (!recent.length) {
+      const empty = document.createElement('div');
+      empty.className = 'emptyState';
+      const h = document.createElement('h3');
+      h.textContent = 'Tu próxima escritura empieza aquí';
+      const p = document.createElement('p');
+      p.textContent = 'Abrí el editor y preparás el primer documento de este libro.';
+      empty.append(h, p);
+      box.append(empty);
+    }
+    for (const d of recent) {
+      const row = document.createElement('div');
+      row.className = 'recentRow';
+      const info = document.createElement('div');
+      info.className = 'recentInfo';
+      const strong = document.createElement('strong');
+      strong.textContent = d.number + ' · ' + d.title;
+      const small = document.createElement('small');
+      small.textContent = d.date.split('-').reverse().join('/') + ' · ' +
+        (d.parties || 'Sin otorgantes registrados');
+      info.append(strong, small);
+      const open = document.createElement('button');
+      open.type = 'button';
+      open.className = 'ghost';
+      open.textContent = 'Abrir';
+      open.onclick = guard(() => {
+        flush();
+        selectedDoc = d.id;
+        renderDoc();
+        renderList();
+        showTab('editor');
+      });
+      row.append(info, statusPill(d.status), open);
+      box.append(row);
+    }
+    renderSnapshots();
+  }
+
+  function renderSnapshots() {
+    const box = $('snapshotList');
+    box.replaceChildren();
+    const list = store.snapshots();
+    if (!list.length) {
+      const p = document.createElement('p');
+      p.className = 'muted small';
+      p.textContent = 'Todavía no hay instantáneas en esta sesión.';
+      box.append(p);
+      return;
+    }
+    for (const snap of list) {
+      const row = document.createElement('div');
+      row.className = 'snapshotRow';
+      const info = document.createElement('div');
+      info.className = 'recentInfo';
+      const strong = document.createElement('strong');
+      strong.textContent = snap.label;
+      const small = document.createElement('small');
+      small.textContent = new Date(snap.at).toLocaleString('es-CR');
+      info.append(strong, small);
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'ghost';
+      btn.textContent = 'Volver a este punto';
+      btn.onclick = guard(() => {
+        if (!confirm('¿Reemplazar los datos actuales por esta instantánea? Se descargará antes una copia del estado presente.')) return;
+        const recovered = store.restoreSnapshot(snap.index);
+        backup();
+        state = recovered;
+        selectedBook = state.books[0] ? state.books[0].id : null;
+        selectedDoc = (state.docs.find(d => d.bookId === selectedBook) || {}).id || null;
+        persist();
+        renderEverything();
+        message('Datos recuperados desde la instantánea.');
+      });
+      row.append(info, btn);
+      box.append(row);
+    }
+  }
+
+  /* ------------------------------------------------------------------ *
+   * Navegación
+   * ------------------------------------------------------------------ */
+
+  function showTab(name) {
+    if (activeTab === 'editor' && name !== 'editor') flush();
+    activeTab = name;
+    document.querySelectorAll('.tab').forEach(el => el.classList.toggle('active', el.id === name));
+    document.querySelectorAll('[data-tab]').forEach(btn => {
+      if (btn.dataset.tab === name) btn.setAttribute('aria-current', 'page');
+      else btn.removeAttribute('aria-current');
+    });
+    $('sectionTitle').textContent = SECTIONS[name] || name;
+    if (name === 'home') renderHome();
+    if (name === 'preview') { showPreview(); fitZoom(); }
+    if (name === 'tomo') renderTomo();
+    if (name === 'index') renderIndex();
+    if (name === 'templates') renderTemplates();
+    if (name === 'tools') renderTools();
+    if (name === 'settings') renderProfile();
+  }
+
+  document.querySelectorAll('[data-tab]').forEach(btn => {
+    btn.addEventListener('click', guard(() => showTab(btn.dataset.tab)));
+  });
+
+  /* ------------------------------------------------------------------ *
+   * Libros y escrituras
+   * ------------------------------------------------------------------ */
+
+  $('book').onchange = guard(() => {
+    flush();
+    selectedBook = $('book').value;
+    selectedDoc = (state.docs.find(d => d.bookId === selectedBook) || {}).id || null;
+    renderDoc();
+    renderList();
+  });
+
+  function openBookModal(edit) {
+    flush();
+    const b = edit ? currentBook() : null;
+    bookEditId = b ? b.id : null;
+    $('bookModalTitle').textContent = b ? 'Editar libro' : 'Nuevo libro';
+    $('bookSubmit').textContent = b ? 'Guardar cambios' : 'Crear libro';
+    $('bookNameInput').value = b ? b.name : '';
+    $('bookTomoInput').value = b ? (b.tomo || 1) : state.books.length + 1;
+    $('bookFoliosInput').value = b ? b.totalFolios : 100;
+    openModal('bookModal');
+  }
+
+  $('newBook').onclick = guard(() => openBookModal(false));
+  $('editBook').onclick = guard(() => openBookModal(true));
+  $('closeBookModal').onclick = () => closeModal('bookModal');
+
+  $('bookModalForm').onsubmit = guard(e => {
+    e.preventDefault();
+    const name = $('bookNameInput').value.trim();
+    const tomo = Number($('bookTomoInput').value);
+    const total = Number($('bookFoliosInput').value);
+    if (!name || !Number.isInteger(total) || total < 1 || total > 10000 ||
+        !Number.isInteger(tomo) || tomo < 1) {
+      throw Error('Revisá el nombre, el número de tomo y la cantidad de folios.');
+    }
+    if (bookEditId) {
+      Object.assign(state.books.find(b => b.id === bookEditId), { name, tomo, totalFolios: total });
+    } else {
+      const b = { id: uid(), name, tomo, totalFolios: total, apertura: '', cierre: '' };
+      state.books.push(b);
+      selectedBook = b.id;
+      selectedDoc = null;
+    }
+    persist();
+    renderBooks();
+    renderDoc();
+    renderList();
+    closeModal('bookModal');
+    message(bookEditId ? 'Libro actualizado.' : 'Libro creado.');
+  });
+
+  $('newDoc').onclick = guard(() => {
+    flush();
+    if (!selectedBook) throw Error('Creá primero un libro.');
+    const siblings = bookDocs();
+    const doc = blankDoc(selectedBook, Math.max(0, ...siblings.map(d => d.number)) + 1);
+    const suggestion = PFN.suggestStart(siblings, layout, state.profile.rows);
+    doc.folio = suggestion.folio;
+    doc.side = suggestion.side;
+    doc.line = suggestion.line;
+    if (state.notary.name) doc.title = 'Nueva escritura';
+    state.docs.push(doc);
+    selectedDoc = doc.id;
+    persist();
+    renderDoc();
+    renderList();
+    showTab('editor');
+    $('title').focus();
+  });
+
+  $('emptyNew').onclick = () => $('newDoc').click();
+  $('homeNew').onclick = guard(() => { $('newDoc').click(); });
+  $('homeAll').onclick = guard(() => showTab('editor'));
+  $('homeCalibrate').onclick = guard(() => showTab('settings'));
+  $('backEditor').onclick = guard(() => showTab('editor'));
+  $('previewCalibrate').onclick = guard(() => showTab('settings'));
+  $('search').oninput = renderList;
+  $('save').onclick = guard(() => { flush(); renderList(); message('Escritura guardada.'); });
+  $('goPreview').onclick = guard(() => showTab('preview'));
+
+  $('suggestPosition').onclick = guard(() => {
+    const d = currentDoc();
+    if (!d) throw Error('Seleccioná una escritura.');
+    const others = bookDocs().filter(x => x.id !== d.id);
+    const suggestion = PFN.suggestStart(others, layout, state.profile.rows);
+    $('folio').value = suggestion.folio;
+    $('side').value = suggestion.side;
+    $('line').value = suggestion.line;
+    flush();
+    renderDoc();
+    message('Posición propuesta: folio ' + suggestion.folio + ' ' + sideWord(suggestion.side) +
+      ', renglón ' + suggestion.line + '. Revisala si trabajás fuera de secuencia.');
+  });
+
+  $('deleteDoc').onclick = guard(() => {
+    flush();
+    const d = currentDoc();
+    if (!d) return;
+    if (!confirm('¿Eliminar la escritura ' + d.number + '? Se guardará antes una instantánea y se descargará un respaldo.')) return;
+    guardChange('Antes de eliminar la escritura ' + d.number);
+    state.docs = state.docs.filter(x => x.id !== d.id);
+    selectedDoc = (state.docs.find(x => x.bookId === selectedBook) || {}).id || null;
+    persist();
+    renderDoc();
+    renderList();
+  });
+
+  /* ------------------------------------------------------------------ *
+   * Respaldo, restauración, importación y exportación
+   * ------------------------------------------------------------------ */
+
+  $('backup').onclick = guard(() => {
+    flush();
+    backup();
+    message('Respaldo JSON preparado. Conservá una copia fuera de la aplicación.');
+  });
+
+  $('restore').onclick = () => $('restoreFile').click();
+
+  $('restoreFile').onchange = async () => {
+    const file = $('restoreFile').files[0];
+    if (!file) return;
+    try {
+      if (file.size > 25000000) throw Error('Respaldo mayor de 25 MB.');
+      const next = PF.checkState(JSON.parse(await file.text()));
+      if (!confirm('¿Restaurar este respaldo y sustituir los datos de la sesión? Se descargará antes una copia del estado actual.')) return;
+      flush();
+      guardChange('Antes de restaurar un respaldo');
+      state = next;
+      storageOK = true;
+      selectedBook = state.books[0] ? state.books[0].id : null;
+      selectedDoc = (state.docs.find(d => d.bookId === selectedBook) || {}).id || null;
+      persist();
+      renderEverything();
+      message('Respaldo restaurado.');
+    } catch (e) {
+      message(e.message, true);
+    } finally {
+      $('restoreFile').value = '';
+    }
+  };
+
+  $('exportText').onclick = guard(() => {
+    flush();
+    const d = currentDoc();
+    if (d) download('Escritura-' + d.number + '.txt', d.text, 'text/plain;charset=utf-8');
+  });
+
+  $('exportRTF').onclick = guard(() => {
+    flush();
+    const d = currentDoc();
+    if (d) download('Escritura-' + d.number + '.rtf', PF.rtf(d.text), 'application/rtf');
+  });
+
+  $('importText').onclick = () => $('textFile').click();
+
+  $('textFile').onchange = async () => {
+    const file = $('textFile').files[0];
+    if (!file) return;
+    try {
+      if (file.size > 2000000) throw Error('Texto mayor de 2 MB.');
+      if (!file.name.toLowerCase().endsWith('.txt')) {
+        throw Error('Para importar un RTF, abrilo en TextEdit y guardalo como texto sin formato (.txt).');
+      }
+      const value = await file.text();
+      if ($('text').value.trim() &&
+          !confirm('¿Reemplazar el texto de esta escritura? Se guardará una instantánea.')) return;
+      flush();
+      guardChange('Antes de importar un TXT');
+      $('text').value = PF.normalize(value);
+      flush();
+      message('Texto importado.');
+    } catch (e) {
+      message(e.message, true);
+    } finally {
+      $('textFile').value = '';
+    }
+  };
+
+  /* ------------------------------------------------------------------ *
+   * Barra de edición
+   * ------------------------------------------------------------------ */
+
+  function insertIntoText(value) {
+    const el = $('text');
+    if (!currentDoc()) throw Error('Seleccioná una escritura para editar el texto.');
+    el.setRangeText(value, el.selectionStart, el.selectionEnd, 'select');
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+    el.focus();
+  }
+
+  $('upperText').onclick = guard(() => {
+    const el = $('text');
+    if (el.selectionStart === el.selectionEnd) throw Error('Seleccioná el fragmento que querés pasar a mayúsculas.');
+    insertIntoText(el.value.slice(el.selectionStart, el.selectionEnd).toLocaleUpperCase('es'));
+  });
+
+  $('insertDate').onclick = guard(() => insertIntoText(PF.dateWords($('date').value)));
+  $('insertHour').onclick = guard(() => {
+    if (!$('hour').value) throw Error('Indicá la hora de la escritura.');
+    insertIntoText(PF.hourWords($('hour').value));
+  });
+
+  $('insertAmount').onclick = guard(() => {
+    const raw = prompt('Importe a convertir (por ejemplo 25 000 000,50):');
+    if (raw === null || !raw.trim()) return;
+    insertIntoText(PF.amountWords(raw, state.tariff.moneda || 'CRC'));
+  });
+
+  $('insertRazon').onclick = guard(() => {
+    const d = currentDoc();
+    if (!d) throw Error('Seleccioná una escritura.');
+    const razon = PFN.razonEntrelineados($('text').value);
+    if (!razon) throw Error('No hay entrelineados «así» ni testaduras [[así]] en el texto.');
+    openTextModal('Razón de entrelineados y testaduras', razon, true);
+  });
+
+  $('makeTestimonio').onclick = guard(() => {
+    flush();
+    const d = currentDoc();
+    const book = currentBook();
+    if (!d || !book) throw Error('Seleccioná una escritura.');
+    const ordinalRaw = prompt('¿Qué testimonio es? (1 = primer testimonio)', '1');
+    if (ordinalRaw === null) return;
+    const ordinal = Number(ordinalRaw);
+    if (!Number.isInteger(ordinal) || ordinal < 1) throw Error('Indicá un número entero mayor que cero.');
+    const text = PFN.razonTestimonio(d, book, state.notary, { ordinal, date: today() });
+    openTextModal('Razón de testimonio', text, true);
+  });
+
+  $('findText').onclick = () => {
+    $('findPanel').hidden = !$('findPanel').hidden;
+    if (!$('findPanel').hidden) $('findValue').focus();
+  };
+  $('closeFind').onclick = () => { $('findPanel').hidden = true; $('text').focus(); };
+  $('findValue').oninput = () => { matchAt = -1; $('findFeedback').textContent = ''; };
+
+  function findNext() {
+    const term = $('findValue').value;
+    if (!term) { $('findFeedback').textContent = 'Escribí una palabra o frase para buscar.'; return; }
+    const text = $('text').value;
+    const haystack = text.toLocaleLowerCase('es');
+    const needle = term.toLocaleLowerCase('es');
+    const from = matchAt >= 0 ? matchAt + term.length : 0;
+    matchAt = haystack.indexOf(needle, from);
+    if (matchAt < 0) matchAt = haystack.indexOf(needle);
+    if (matchAt < 0) { $('findFeedback').textContent = 'No se encontraron coincidencias.'; return; }
+    $('text').focus();
+    $('text').setSelectionRange(matchAt, matchAt + term.length);
+    $('findFeedback').textContent = 'Coincidencia encontrada. Podés reemplazar este fragmento.';
+  }
+
+  $('findNext').onclick = findNext;
+  $('replaceOne').onclick = guard(() => {
+    const term = $('findValue').value;
+    const el = $('text');
+    const selected = el.value.slice(el.selectionStart, el.selectionEnd);
+    if (!term || selected.toLocaleLowerCase('es') !== term.toLocaleLowerCase('es')) { findNext(); return; }
+    insertIntoText($('replaceValue').value);
+    matchAt = el.selectionEnd - term.length;
+    findNext();
+  });
+
+  /* ------------------------------------------------------------------ *
+   * Vista de caras e impresión
+   * ------------------------------------------------------------------ */
+
+  function makePage(page, isCalibration) {
+    const p = state.profile;
+    const s = p[page.side];
+    const el = document.createElement('div');
+    el.className = 'page' + (isCalibration ? ' calibration' : '');
+    el.style.width = p.width + 'mm';
+    el.style.height = p.height + 'mm';
+    const x = s.left + s.x;
+    const w = p.width - s.left - s.right;
+
+    for (let i = 0; i < p.rows; i++) {
+      const y = s.top + s.y + i * p.pitch + p.fontSize * 25.4 / 72 * 1.1;
+      const guide = document.createElement('div');
+      guide.className = 'guide';
+      guide.style.cssText = 'left:' + x + 'mm;top:' + y + 'mm;width:' + w + 'mm';
+      el.append(guide);
+    }
+
+    page.lines.forEach((raw, i) => {
+      const row = page.start + i;
+      const y = s.top + s.y + (row - 1) * p.pitch;
+      const line = document.createElement('div');
+      line.className = 'protocolLine';
+      line.style.left = x + 'mm';
+      line.style.top = y + 'mm';
+      line.style.width = w + 'mm';
+      line.style.fontFamily = p.font;
+      line.style.fontSize = p.fontSize + 'pt';
+      let text = raw;
+
+      if (!isCalibration && p.fill && page.isLast && i === page.lines.length - 1) {
+        measureCtx.font = (p.fontSize * 96 / 72) + 'px "' + p.font + '"';
+        while (measureCtx.measureText(text + '—').width <= w * 96 / 25.4) text += '—';
+      }
+      if (!isCalibration && p.justify && (!page.isLast || i < page.lines.length - 1) &&
+          text.indexOf(' ') >= 0) {
+        line.classList.add('justified');
+        for (const word of text.split(' ')) {
+          const span = document.createElement('span');
+          span.textContent = word;
+          line.append(span);
+        }
+      } else {
+        line.textContent = text;
+      }
+      el.append(line);
+
+      if (p.numberLines || isCalibration) {
+        const n = document.createElement('div');
+        n.className = 'lineNumber';
+        n.textContent = row;
+        n.style.left = Math.max(0, x - 7) + 'mm';
+        n.style.top = y + 'mm';
+        el.append(n);
+      }
+    });
+
+    if (isCalibration) {
+      const label = document.createElement('div');
+      label.className = 'calLabel';
+      label.textContent = 'PRUEBA ' + (page.side === 'front' ? 'FRENTE' : 'VUELTO') +
+        ' · ' + p.width + ' × ' + p.height + ' mm · X ' + s.x + ' / Y ' + s.y + ' mm · Escala 100 %';
+      label.style.top = '8mm';
+      label.style.left = '10mm';
+      el.append(label);
+    }
+    return el;
+  }
+
+  function documentWarnings(doc, pp) {
+    const out = [];
+    if (/\[[^\]]+\]/u.test(doc.text)) out.push('Hay campos entre corchetes pendientes de completar.');
+    if (/\{[^{}]+\}/u.test(doc.text)) out.push('Quedan campos de plantilla sin reemplazar.');
+    const marked = PFN.marks(doc.text);
+    if (marked.entrelineados.length || marked.testados.length) {
+      out.push('Hay entrelineados o testaduras marcados: revisá que la razón final esté incluida.');
+    }
+    const book = currentBook();
+    if (pp.some(p => p.folio > ((book && book.totalFolios) || 100))) {
+      out.push('El texto excede la cantidad de folios del libro.');
+    }
+    const own = new Set(PF.positions(pp));
+    for (const other of bookDocs()) {
+      if (other.id === doc.id || !other.text.trim()) continue;
+      if (PF.positions(layout(other)).some(pos => own.has(pos))) {
+        out.push('Hay renglones ocupados por otra escritura: corregí la posición inicial antes de imprimir.');
+        break;
+      }
+    }
+    return out;
+  }
+
+  function showPreview() {
+    const doc = currentDoc();
+    pages = doc ? layout(doc) : [];
+    $('pages').replaceChildren();
+    $('layoutReport').replaceChildren();
+    $('pageFrom').value = 1;
+    $('pageTo').value = pages.length || 1;
+    $('print').disabled = !pages.length;
+    previewSignature = JSON.stringify([doc, state.profile]);
+
+    if (!doc || !pages.length) {
+      $('layoutReport').textContent = 'La escritura no contiene texto.';
+      return;
+    }
+    const last = pages[pages.length - 1];
+    const summary = document.createElement('p');
+    summary.className = 'ok';
+    summary.textContent = pages.length + ' caras · desde folio ' + doc.folio + ' ' +
+      sideWord(doc.side) + ', renglón ' + doc.line + ', hasta folio ' + last.folio + ' ' +
+      sideWord(last.side) + ', renglón ' + (last.start + last.lines.length - 1) + '.';
+    $('layoutReport').append(summary);
+
+    for (const text of documentWarnings(doc, pages)) {
+      const w = document.createElement('p');
+      w.className = 'warning';
+      w.textContent = text;
+      $('layoutReport').append(w);
+    }
+
+    pages.forEach((pg, i) => {
+      const container = document.createElement('div');
+      const label = document.createElement('p');
+      label.className = 'pageLabel';
+      label.textContent = 'Cara ' + (i + 1) + ' · folio ' + pg.folio + ' · ' + sideWord(pg.side);
+      const frame = document.createElement('div');
+      frame.className = 'pageFrame';
+      frame.append(makePage(pg));
+      container.append(label, frame);
+      $('pages').append(container);
+    });
+    adjustZoom();
+  }
+
+  function adjustZoom() {
+    const p = state.profile;
+    document.querySelectorAll('#pages .pageFrame').forEach(frame => {
+      frame.style.width = p.width * 96 / 25.4 * zoom + 'px';
+      frame.style.height = p.height * 96 / 25.4 * zoom + 'px';
+      frame.firstElementChild.style.transform = 'scale(' + zoom + ')';
+    });
+    $('zoomValue').textContent = Math.round(zoom * 100) + ' %';
+  }
+
+  function fitZoom() {
+    const width = $('pages').clientWidth - 40;
+    if (width > 0) zoom = Math.max(.25, Math.min(1, width / (state.profile.width * 96 / 25.4)));
+    adjustZoom();
+  }
+
+  $('refreshPreview').onclick = guard(showPreview);
+  $('zoomOut').onclick = () => { zoom = Math.max(.25, zoom - .1); adjustZoom(); };
+  $('zoomIn').onclick = () => { zoom = Math.min(1.5, zoom + .1); adjustZoom(); };
+  $('zoomFit').onclick = fitZoom;
+  window.addEventListener('resize', () => { if (activeTab === 'preview') fitZoom(); });
+
+  function preparePrint(pp, isCalibration) {
+    $('paperSize').textContent = '@page { size: ' + state.profile.width + 'mm ' +
+      state.profile.height + 'mm; margin: 0; }';
+    $('printArea').replaceChildren(...pp.map(p => makePage(p, isCalibration)));
+    window.print();
+  }
+
+  $('print').onclick = guard(() => {
+    flush();
+    const doc = currentDoc();
+    if (!doc || !doc.text.trim()) throw Error('No hay texto para imprimir.');
+    if (previewSignature !== JSON.stringify([doc, state.profile])) {
+      showPreview();
+      throw Error('La vista cambió. Revisá la distribución y volvé a imprimir.');
+    }
+    const warn = documentWarnings(doc, pages);
+    if (warn.some(w => w.indexOf('ocupados') >= 0 || w.indexOf('excede') >= 0)) {
+      throw Error(warn.join('\n'));
+    }
+    if (warn.length && !confirm(warn.join('\n') + '\n¿Continuar después de revisar?')) return;
+
+    const from = Number($('pageFrom').value);
+    const to = Number($('pageTo').value);
+    if (!Number.isInteger(from) || !Number.isInteger(to) || from < 1 || to > pages.length || to < from) {
+      throw Error('Rango de caras inválido.');
+    }
+    const side = $('printSide').value;
+    const filtered = pages.slice(from - 1, to).filter(p => side === 'all' || p.side === side);
+    if (!filtered.length) throw Error('No hay caras de ese tipo en el rango.');
+    preparePrint(filtered, false);
+  });
+
+  /* ------------------------------------------------------------------ *
+   * Tomo, razones y mapa de folios
+   * ------------------------------------------------------------------ */
+
+  function renderTomo() {
+    const book = currentBook();
+    if (!book) return;
+    $('tomoNumber').value = book.tomo || 1;
+    $('tomoFolios').value = book.totalFolios || 100;
+    $('aperturaText').value = book.apertura || '';
+    $('cierreText').value = book.cierre || '';
+    if (!$('aperturaDate').value) $('aperturaDate').value = today();
+    if (!$('cierreDate').value) $('cierreDate').value = today();
+
+    let map;
+    try {
+      map = PFN.folioMap(bookDocs(), layout);
+    } catch (e) {
+      $('folioMap').textContent = e.message;
+      return;
+    }
+    $('tomoUsed').value = map.lastUsed
+      ? 'Hasta el folio ' + map.lastUsed.folio + ' ' + sideWord(map.lastUsed.side) +
+        ', renglón ' + map.lastUsed.line
+      : 'Sin folios ocupados';
+
+    const box = $('folioMap');
+    box.replaceChildren();
+    const conflictNumbers = new Set();
+    for (const c of map.conflicts) { conflictNumbers.add(c.a); conflictNumbers.add(c.b); }
+
+    if (!map.entries.length) {
+      const p = document.createElement('p');
+      p.className = 'muted small';
+      p.textContent = 'El libro todavía no tiene escrituras.';
+      box.append(p);
+    }
+    for (const entry of map.entries) {
+      const row = document.createElement('div');
+      row.className = 'folioRow' + (conflictNumbers.has(entry.doc.number) ? ' conflict' : '');
+      const num = document.createElement('strong');
+      num.textContent = 'N.º ' + entry.doc.number;
+      const title = document.createElement('span');
+      title.textContent = entry.doc.title;
+      const range = document.createElement('span');
+      range.className = 'muted small';
+      range.textContent = entry.end
+        ? 'Folio ' + entry.start.folio + ' ' + sideWord(entry.start.side) + ' r.' + entry.start.line +
+          ' → folio ' + entry.end.folio + ' ' + sideWord(entry.end.side) + ' r.' + entry.end.line +
+          ' · ' + entry.pages.length + ' caras'
+        : 'Sin texto';
+      row.append(num, title, range);
+      box.append(row);
+    }
+    if (map.conflicts.length) {
+      const p = document.createElement('p');
+      p.className = 'warning';
+      p.textContent = 'Hay ' + map.conflicts.length +
+        ' renglones ocupados por más de una escritura. Corregí las posiciones iniciales.';
+      box.append(p);
+    }
+  }
+
+  $('saveTomo').onclick = guard(() => {
+    const book = currentBook();
+    if (!book) throw Error('Seleccioná un libro.');
+    const tomo = Number($('tomoNumber').value);
+    const folios = Number($('tomoFolios').value);
+    if (!Number.isInteger(tomo) || tomo < 1 || !Number.isInteger(folios) || folios < 1 || folios > 10000) {
+      throw Error('Revisá el número de tomo y la cantidad de folios.');
+    }
+    book.tomo = tomo;
+    book.totalFolios = folios;
+    persist();
+    renderBooks();
+    renderTomo();
+    message('Datos del tomo guardados.');
+  });
+
+  $('genApertura').onclick = guard(() => {
+    const book = currentBook();
+    if (!book) throw Error('Seleccioná un libro.');
+    $('aperturaText').value = PFN.razonApertura(book, state.notary, {
+      date: $('aperturaDate').value || today(),
+      time: $('aperturaTime').value || '08:00',
+      tomo: Number($('tomoNumber').value) || book.tomo,
+      folios: Number($('tomoFolios').value) || book.totalFolios
+    });
+  });
+
+  $('genCierre').onclick = guard(() => {
+    const book = currentBook();
+    if (!book) throw Error('Seleccioná un libro.');
+    const map = PFN.folioMap(bookDocs(), layout);
+    const numbers = bookDocs().map(d => d.number);
+    $('cierreText').value = PFN.razonCierre(book, state.notary, {
+      date: $('cierreDate').value || today(),
+      time: $('cierreTime').value || '16:00',
+      motivo: $('cierreMotivo').value,
+      tomo: Number($('tomoNumber').value) || book.tomo,
+      ultimaEscritura: numbers.length ? Math.max(...numbers) : null,
+      ultimoFolio: map.lastUsed ? map.lastUsed.folio : null
+    });
+  });
+
+  $('saveApertura').onclick = guard(() => {
+    const book = currentBook();
+    if (!book) throw Error('Seleccioná un libro.');
+    book.apertura = $('aperturaText').value;
+    persist();
+    message('Razón de apertura guardada en el libro.');
+  });
+
+  $('saveCierre').onclick = guard(() => {
+    const book = currentBook();
+    if (!book) throw Error('Seleccioná un libro.');
+    book.cierre = $('cierreText').value;
+    persist();
+    message('Razón de cierre guardada en el libro.');
+  });
+
+  function copyToClipboard(text) {
+    if (!text.trim()) throw Error('No hay texto para copiar.');
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(
+        () => message('Texto copiado.'),
+        () => message('El navegador no permitió copiar. Seleccioná el texto manualmente.', true)
+      );
+    } else {
+      message('El navegador no permite copiar automáticamente. Seleccioná el texto manualmente.', true);
+    }
+  }
+
+  $('copyApertura').onclick = guard(() => copyToClipboard($('aperturaText').value));
+  $('copyCierre').onclick = guard(() => copyToClipboard($('cierreText').value));
+
+  /* ------------------------------------------------------------------ *
+   * Índice
+   * ------------------------------------------------------------------ */
+
+  function indexRows() {
+    const book = currentBook();
+    if (!book) return [PFN.INDEX_HEADERS];
+    return PFN.indexRows(book, bookDocs(), layout);
+  }
+
+  function renderIndex() {
+    const book = currentBook();
+    $('indexBookName').textContent = book ? 'Índice de ' + book.name : 'Índice';
+    $('indexCount').textContent = bookDocs().length + ' escrituras';
+    let rows;
+    try {
+      rows = indexRows();
+    } catch (e) {
+      message(e.message, true);
+      return;
+    }
+    const table = $('indexTable');
+    const thead = table.querySelector('thead');
+    const tbody = table.querySelector('tbody');
+    thead.replaceChildren();
+    tbody.replaceChildren();
+    const headRow = document.createElement('tr');
+    for (const h of rows[0]) {
+      const th = document.createElement('th');
+      th.textContent = h;
+      headRow.append(th);
+    }
+    thead.append(headRow);
+    for (const row of rows.slice(1)) {
+      const tr = document.createElement('tr');
+      for (const cell of row) {
+        const td = document.createElement('td');
+        td.textContent = cell;
+        tr.append(td);
+      }
+      tbody.append(tr);
+    }
+  }
+
+  $('exportIndex').onclick = guard(() => {
+    flush();
+    download('Indice-trabajo-' + today() + '.csv', PF.csv(indexRows()), 'text/csv;charset=utf-8');
+    message('Índice CSV descargado. No constituye la presentación oficial del índice notarial.');
+  });
+
+  $('printIndex').onclick = guard(() => {
+    flush();
+    renderIndex();
+    window.print();
+  });
+
+  /* ------------------------------------------------------------------ *
+   * Plantillas
+   * ------------------------------------------------------------------ */
+
+  const SAMPLE_TEMPLATES = [
+    {
+      name: 'Estructura — compraventa de inmueble',
+      text: 'NÚMERO {NumeroOrdinal}: Ante mí, {Notario}, Notario Público con oficina en {Lugar}, ' +
+        'comparecen: {Otorgantes}. Y dicen: PRIMERO: Que [Insertar Nombre del Vendedor] es dueño de la ' +
+        'finca inscrita en el Registro Inmobiliario, partido de [Insertar Partido], matrícula número ' +
+        '[Insertar Matrícula], que se describe así: [Insertar Naturaleza, Situación, Linderos y Medida]. ' +
+        'SEGUNDO: Que por este acto vende [Insertar Porcentaje] del citado inmueble a ' +
+        '[Insertar Nombre del Comprador], en el precio de [Insertar Precio en Letras]. ' +
+        'TERCERO: Que el precio es cancelado [Insertar Forma de Pago]. ' +
+        'CUARTO: Que la finca se traspasa libre de anotaciones y gravámenes, salvo [Insertar Afecciones]. ' +
+        'QUINTO: El comprador acepta. Es todo. Expido [Insertar Número de Testimonio]. ' +
+        'Leído lo escrito a los comparecientes, lo aprueban y firmamos en {Lugar}, a {FechaHora}.'
+    },
+    {
+      name: 'Estructura — poder especial',
+      text: 'NÚMERO {NumeroOrdinal}: Ante mí, {Notario}, Notario Público, comparece {Otorgantes} y dice: ' +
+        'ÚNICO: Que confiere PODER ESPECIAL a [Insertar Nombre del Apoderado], ' +
+        '[Insertar Calidades y Cédula], para que en su nombre [Insertar Facultades Específicas]. ' +
+        'El poder se otorga con las facultades del artículo mil doscientos cincuenta y seis del Código Civil. ' +
+        'Es todo. Leído lo escrito al compareciente, lo aprueba y firmamos en {Lugar}, a {FechaHora}.'
+    },
+    {
+      name: 'Estructura — constitución de sociedad anónima',
+      text: 'NÚMERO {NumeroOrdinal}: Ante mí, {Notario}, Notario Público, comparecen {Otorgantes} y dicen: ' +
+        'Que constituyen una sociedad anónima que se regirá por las siguientes cláusulas: ' +
+        'PRIMERA: Denominación: [Insertar Denominación] Sociedad Anónima. ' +
+        'SEGUNDA: Domicilio: [Insertar Domicilio Exacto]. TERCERA: Objeto: [Insertar Objeto Social]. ' +
+        'CUARTA: Plazo: [Insertar Plazo en Letras] años contados desde hoy. ' +
+        'QUINTA: Capital social: [Insertar Capital en Letras], representado por ' +
+        '[Insertar Número de Acciones] acciones comunes y nominativas. ' +
+        'SEXTA: Administración: [Insertar Junta Directiva y Representación]. ' +
+        'SÉTIMA: Fiscal: [Insertar Nombre del Fiscal]. ' +
+        'OCTAVA: Agente residente: [Insertar Agente Residente]. ' +
+        'Es todo. Leído lo escrito a los comparecientes, lo aprueban y firmamos en {Lugar}, a {FechaHora}.'
+    }
+  ];
+
+  function renderTemplates() {
+    const sel = $('templateSelect');
+    sel.replaceChildren(new Option('Elegí o creá una plantilla', ''));
+    for (const t of state.templates) sel.add(new Option(t.name, t.id));
+    if (!state.templates.some(t => t.id === templateId)) templateId = '';
+    sel.value = templateId;
+    const t = state.templates.find(x => x.id === templateId);
+    $('templateName').value = t ? t.name : '';
+    $('templateText').value = t ? t.text : '';
+  }
+
+  $('templateSelect').onchange = () => { templateId = $('templateSelect').value; renderTemplates(); };
+  $('newTemplate').onclick = () => { templateId = ''; renderTemplates(); $('templateName').focus(); };
+
+  $('saveTemplate').onclick = guard(() => {
+    const name = $('templateName').value.trim();
+    const text = $('templateText').value;
+    if (!name || !text.trim()) throw Error('Ingresá nombre y contenido.');
+    const existing = state.templates.find(t => t.id === templateId);
+    if (existing) Object.assign(existing, { name, text });
+    else {
+      const t = { id: uid(), name, text };
+      state.templates.push(t);
+      templateId = t.id;
+    }
+    persist();
+    renderTemplates();
+    message('Plantilla guardada.');
+  });
+
+  $('deleteTemplate').onclick = guard(() => {
+    if (!templateId) throw Error('Elegí una plantilla.');
+    if (!confirm('¿Eliminar esta plantilla? Se guardará una instantánea.')) return;
+    guardChange('Antes de eliminar una plantilla');
+    state.templates = state.templates.filter(t => t.id !== templateId);
+    templateId = '';
+    persist();
+    renderTemplates();
+  });
+
+  $('loadSamples').onclick = guard(() => {
+    let added = 0;
+    for (const sample of SAMPLE_TEMPLATES) {
+      if (state.templates.some(t => t.name === sample.name)) continue;
+      state.templates.push({ id: uid(), name: sample.name, text: sample.text });
+      added++;
+    }
+    persist();
+    renderTemplates();
+    message(added ? added + ' modelos agregados. Son estructuras de trabajo: revisá y completá cada marcador.'
+      : 'Los modelos de ejemplo ya estaban cargados.');
+  });
+
+  $('useTemplate').onclick = guard(() => {
+    flush();
+    const doc = currentDoc();
+    const book = currentBook();
+    if (!doc || !book) throw Error('Creá o seleccioná una escritura.');
+    const source = $('templateText').value;
+    if (!source.trim()) throw Error('La plantilla está vacía.');
+    if (doc.text.trim() && !confirm('¿Reemplazar el texto por esta plantilla? Se guardará una instantánea.')) return;
+    guardChange('Antes de aplicar una plantilla');
+    doc.text = PFN.fillTemplate(source, { doc, book, notary: state.notary });
+    doc.modified = new Date().toISOString();
+    persist();
+    renderDoc();
+    showTab('editor');
+    message('Plantilla aplicada. Los campos sin dato quedaron visibles para completarlos.');
+  });
+
+  /* ------------------------------------------------------------------ *
+   * Herramientas
+   * ------------------------------------------------------------------ */
+
+  function renderTools() {
+    $('notary').value = state.notary.name || '';
+    $('notaryCedula').value = state.notary.cedula || '';
+    $('notaryCarne').value = state.notary.carne || '';
+    $('place').value = state.notary.place || '';
+    $('notaryOffice').value = state.notary.office || '';
+    if (!$('dateTool').value) $('dateTool').value = today();
+    $('amountCurrency').value = state.tariff.moneda || 'CRC';
+  }
+
+  $('saveNotary').onclick = guard(() => {
+    state.notary = {
+      name: $('notary').value.trim(),
+      cedula: $('notaryCedula').value.trim(),
+      carne: $('notaryCarne').value.trim(),
+      place: $('place').value.trim(),
+      office: $('notaryOffice').value.trim()
+    };
+    persist();
+    renderHome();
+    message('Datos del notario guardados.');
+  });
+
+  $('convertNumber').onclick = guard(() => {
+    const raw = $('numeric').value.trim();
+    if (!/^-?\d+$/.test(raw)) throw Error('Ingresá un entero sin separadores ni decimales.');
+    $('words').textContent = PF.numberWords(Number(raw));
+  });
+
+  $('convertAmount').onclick = guard(() => {
+    $('amountResult').textContent = PF.amountWords($('amountValue').value, $('amountCurrency').value);
+  });
+
+  $('convertDate').onclick = guard(() => {
+    const date = $('dateTool').value;
+    const hour = $('hourTool').value;
+    $('dateResult').textContent = hour ? PF.dateTimeWords(date, hour) : PF.dateWords(date);
+  });
+
+  $('calcFee').onclick = guard(() => {
+    const raw = String($('feeAmount').value).replace(/[₡$€\s.]/g, '').replace(',', '.');
+    const amount = Number(raw);
+    if (!Number.isFinite(amount) || amount < 0) throw Error('Ingresá la cuantía del acto.');
+    const result = PFN.liquidacion(amount, state.tariff);
+    const money = n => n.toLocaleString('es-CR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    const table = document.createElement('table');
+    const thead = document.createElement('thead');
+    thead.innerHTML = '<tr><th>Concepto</th><th>Base</th><th>Monto</th><th>Nota</th></tr>';
+    const tbody = document.createElement('tbody');
+    const add = (concept, base, amountValue, note) => {
+      const tr = document.createElement('tr');
+      for (const value of [concept, base, money(amountValue), note || '']) {
+        const td = document.createElement('td');
+        td.textContent = value;
+        tr.append(td);
+      }
+      tbody.append(tr);
+    };
+    add('Honorarios profesionales', 'Tramos del arancel', result.honorarios, 'Verificar arancel vigente');
+    for (const row of result.timbres) {
+      add(row.nombre, row.tipo === 'porcentaje' ? row.valor + ' %' : 'Monto fijo', row.monto, row.nota);
+    }
+    add('TOTAL ESTIMADO', '', result.total, result.moneda);
+    table.append(thead, tbody);
+
+    const note = document.createElement('p');
+    note.className = 'muted small';
+    note.textContent = 'Cálculo con las tarifas guardadas en esta aplicación. No sustituye la verificación ' +
+      'del arancel ni de la normativa tributaria y registral vigente.';
+
+    const letters = document.createElement('p');
+    letters.className = 'result';
+    letters.textContent = 'Total en letras: ' + PF.amountWords(result.total, result.moneda) + '.';
+
+    $('feeResult').replaceChildren(table, letters, note);
+  });
+
+  $('editTariff').onclick = guard(() => {
+    const box = $('tariffEditor');
+    box.hidden = !box.hidden;
+    if (box.hidden) return;
+    box.replaceChildren();
+
+    const h = document.createElement('h3');
+    h.textContent = 'Tarifas editables';
+    box.append(h);
+
+    const minLabel = document.createElement('label');
+    minLabel.textContent = 'Honorario mínimo';
+    const minInput = document.createElement('input');
+    minInput.type = 'number';
+    minInput.step = '0.01';
+    minInput.value = state.tariff.honorarios.minimo || 0;
+    minLabel.append(minInput);
+    box.append(minLabel);
+
+    const tramoInputs = state.tariff.honorarios.tramos.map((tramo, i) => {
+      const wrap = document.createElement('div');
+      wrap.className = 'grid two';
+      const hasta = document.createElement('label');
+      hasta.textContent = 'Tramo ' + (i + 1) + ' — hasta (vacío = en adelante)';
+      const hastaInput = document.createElement('input');
+      hastaInput.type = 'number';
+      hastaInput.step = '0.01';
+      hastaInput.value = tramo.hasta == null ? '' : tramo.hasta;
+      hasta.append(hastaInput);
+      const pct = document.createElement('label');
+      pct.textContent = 'Porcentaje';
+      const pctInput = document.createElement('input');
+      pctInput.type = 'number';
+      pctInput.step = '0.01';
+      pctInput.value = tramo.porcentaje;
+      pct.append(pctInput);
+      wrap.append(hasta, pct);
+      box.append(wrap);
+      return { hastaInput, pctInput };
+    });
+
+    const stampInputs = state.tariff.timbres.map(item => {
+      const wrap = document.createElement('div');
+      wrap.className = 'grid three';
+      const name = document.createElement('label');
+      name.textContent = 'Concepto';
+      const nameInput = document.createElement('input');
+      nameInput.type = 'text';
+      nameInput.value = item.nombre;
+      name.append(nameInput);
+      const type = document.createElement('label');
+      type.textContent = 'Tipo';
+      const typeSelect = document.createElement('select');
+      typeSelect.add(new Option('Porcentaje', 'porcentaje'));
+      typeSelect.add(new Option('Monto fijo', 'fijo'));
+      typeSelect.value = item.tipo;
+      type.append(typeSelect);
+      const value = document.createElement('label');
+      value.textContent = 'Valor';
+      const valueInput = document.createElement('input');
+      valueInput.type = 'number';
+      valueInput.step = '0.0001';
+      valueInput.value = item.valor;
+      value.append(valueInput);
+      wrap.append(name, type, value);
+      box.append(wrap);
+      return { nameInput, typeSelect, valueInput, item };
+    });
+
+    const save = document.createElement('button');
+    save.textContent = 'Guardar tarifas';
+    save.onclick = guard(() => {
+      state.tariff.honorarios.minimo = Number(minInput.value) || 0;
+      state.tariff.honorarios.tramos = tramoInputs.map(t => ({
+        hasta: t.hastaInput.value === '' ? null : Number(t.hastaInput.value),
+        porcentaje: Number(t.pctInput.value) || 0
+      }));
+      state.tariff.timbres = stampInputs.map(s => ({
+        nombre: s.nameInput.value.trim() || 'Concepto',
+        tipo: s.typeSelect.value,
+        valor: Number(s.valueInput.value) || 0,
+        nota: s.item.nota || ''
+      }));
+      persist();
+      message('Tarifas guardadas. Recordá confrontarlas con la normativa vigente.');
+    });
+    box.append(save);
+  });
+
+  /* ------------------------------------------------------------------ *
+   * Perfil de papel y calibración
+   * ------------------------------------------------------------------ */
+
+  function renderProfile() {
+    const form = $('profileForm');
+    for (const key of ['width', 'height', 'rows', 'pitch', 'font', 'fontSize']) {
+      form.elements.namedItem(key).value = state.profile[key];
+    }
+    for (const key of ['numberLines', 'justify', 'fill']) {
+      form.elements.namedItem(key).checked = Boolean(state.profile[key]);
+    }
+    const box = $('sideSettings');
+    box.replaceChildren();
+    for (const side of ['front', 'back']) {
+      const card = document.createElement('div');
+      card.className = 'card';
+      const head = document.createElement('h3');
+      head.textContent = side === 'front' ? 'Frente' : 'Vuelto';
+      const grid = document.createElement('div');
+      grid.className = 'grid three';
+      const labels = [['left', 'Margen izquierdo'], ['right', 'Margen derecho'],
+        ['top', 'Posición superior'], ['x', 'Mover izquierda / derecha (X)'],
+        ['y', 'Mover arriba / abajo (Y)']];
+      for (const [key, title] of labels) {
+        const label = document.createElement('label');
+        label.textContent = title + ' (mm)';
+        const input = document.createElement('input');
+        input.name = side + '_' + key;
+        input.type = 'number';
+        input.step = '0.1';
+        input.value = state.profile[side][key];
+        label.append(input);
+        grid.append(label);
+      }
+      card.append(head, grid);
+      box.append(card);
+    }
+  }
+
+  $('profileForm').onsubmit = guard(e => {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const next = PF.clone(state.profile);
+    for (const key of ['width', 'height', 'rows', 'pitch', 'fontSize']) {
+      next[key] = Number(form.elements.namedItem(key).value);
+    }
+    next.font = form.elements.namedItem('font').value;
+    for (const key of ['numberLines', 'justify', 'fill']) {
+      next[key] = form.elements.namedItem(key).checked;
+    }
+    for (const side of ['front', 'back']) {
+      for (const key of ['left', 'right', 'top', 'x', 'y']) {
+        next[side][key] = Number(form.elements.namedItem(side + '_' + key).value);
+      }
+    }
+    const errors = PF.validate(next);
+    if (errors.length) throw Error(errors.join('\n'));
+    if (state.docs.some(d => d.line > next.rows)) {
+      throw Error('Hay escrituras con renglón inicial mayor que la nueva cantidad de renglones.');
+    }
+    guardChange('Antes de cambiar el perfil de papel');
+    state.profile = next;
+    persist();
+    message('Perfil guardado. La distribución de todas las escrituras se recalcula con estas medidas.');
+  });
+
+  function calibrationSheet(side) {
+    const errors = PF.validate(state.profile);
+    if (errors.length) throw Error(errors.join('\n'));
+    const lines = Array.from({ length: state.profile.rows },
+      (_, i) => 'Renglón ' + (i + 1) + ' · ABCDEFGHIJKLMNOPQRSTUVWXYZ · abcdefghijklmnopqrstuvwxyz');
+    preparePrint([{ folio: 1, side, start: 1, lines }], true);
+  }
+
+  $('calFront').onclick = guard(() => calibrationSheet('front'));
+  $('calBack').onclick = guard(() => calibrationSheet('back'));
+
+  /* ------------------------------------------------------------------ *
+   * Modales
+   * ------------------------------------------------------------------ */
+
+  function openModal(id) {
+    lastFocus = document.activeElement;
+    $(id).hidden = false;
+    const focusable = $(id).querySelector('input, textarea, button');
+    if (focusable) focusable.focus();
+  }
+
+  function closeModal(id) {
+    $(id).hidden = true;
+    if (lastFocus) lastFocus.focus();
+  }
+
+  function openTextModal(title, body, allowInsert) {
+    $('textModalTitle').textContent = title;
+    $('textModalBody').value = body;
+    $('textModalInsert').hidden = !allowInsert;
+    modalInsertTarget = allowInsert ? 'text' : null;
+    openModal('textModal');
+  }
+
+  $('closeTextModal').onclick = () => closeModal('textModal');
+  $('textModalCopy').onclick = guard(() => copyToClipboard($('textModalBody').value));
+  $('textModalInsert').onclick = guard(() => {
+    if (modalInsertTarget !== 'text') return;
+    const el = $('text');
+    const value = $('textModalBody').value;
+    const separator = el.value.trim() && !el.value.endsWith(' ') ? ' ' : '';
+    el.value = el.value + separator + value;
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+    flush();
+    closeModal('textModal');
+    message('Texto agregado al final de la escritura.');
+  });
+
+  const HELP_GENERAL = [
+    ['Elegí un libro y redactá', 'En Escrituras creás el documento. Podés escribir, importar un TXT o aplicar una plantilla propia.'],
+    ['Revisá la vista de folios', 'Usá el zoom para leer cada cara. Los avisos señalan campos pendientes y renglones superpuestos.'],
+    ['Imprimí y guardá una copia', 'Calibrá con papel común y descargá el respaldo JSON al terminar la sesión.']
+  ];
+  const HELP_CALIBRATION = [
+    ['Medí tu hoja de protocolo', 'Ingresá ancho, alto y cantidad de renglones. Medí del renglón uno al once y dividí entre diez para la separación.'],
+    ['Probá las dos caras', 'Guardá el perfil e imprimí las pruebas de frente y vuelto en papel común, con escala 100 %.'],
+    ['Corregí el desplazamiento', 'Si el texto sale 3 mm más abajo, usá Y = −3. Si sale a la derecha, corregí X con un valor negativo.']
+  ];
+
+  function showHelp(isCalibration) {
+    $('helpTitle').textContent = isCalibration ? 'Alineá el papel, paso a paso' : 'Un paso a la vez';
+    const content = isCalibration ? HELP_CALIBRATION : HELP_GENERAL;
+    $('helpModal').querySelectorAll('.guideStep').forEach((el, i) => {
+      el.querySelector('strong').textContent = content[i][0];
+      el.querySelector('p').textContent = content[i][1];
+    });
+    openModal('helpModal');
+  }
+
+  $('openHelp').onclick = () => showHelp(false);
+  $('settingsHelp').onclick = () => showHelp(true);
+  $('closeHelp').onclick = () => closeModal('helpModal');
+  $('helpDone').onclick = () => closeModal('helpModal');
+
+  for (const id of ['helpModal', 'bookModal', 'textModal']) {
+    $(id).addEventListener('click', e => { if (e.target === $(id)) closeModal(id); });
+  }
+
+  document.addEventListener('keydown', e => {
+    const open = ['helpModal', 'bookModal', 'textModal'].find(id => !$(id).hidden);
+    if (!open) return;
+    if (e.key === 'Escape') { e.preventDefault(); closeModal(open); }
+    if (e.key === 'Tab') {
+      const nodes = Array.from($(open).querySelectorAll('button, input, textarea, select'))
+        .filter(n => !n.disabled && !n.hidden);
+      if (!nodes.length) return;
+      const first = nodes[0];
+      const last = nodes[nodes.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+  });
+
+  document.addEventListener('keydown', guard(e => {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') { e.preventDefault(); flush(); }
+  }));
+
+  window.addEventListener('beforeunload', e => {
+    try { collect(); persist(); } catch (err) { e.preventDefault(); e.returnValue = ''; }
+    if (!storageOK) { e.preventDefault(); e.returnValue = ''; }
+  });
+
+  /* ------------------------------------------------------------------ *
+   * Arranque
+   * ------------------------------------------------------------------ */
+
+  function renderEverything() {
+    renderBooks();
+    renderDoc();
+    renderList();
+    renderProfile();
+    renderTools();
+    renderTemplates();
+    renderHome();
+  }
+
+  $('welcomeDate').textContent = new Date()
+    .toLocaleDateString('es-CR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+    .toLocaleUpperCase('es');
+
+  renderEverything();
+  showTab('home');
+
+  if (!storageOK) {
+    message('No se pudieron leer o escribir los datos locales. El trabajo queda en memoria: ' +
+      'descargá un respaldo JSON antes de cerrar. ' + (loaded.reason || ''), true);
+  } else {
+    persist();
+  }
+})();
+
+</script>
+</body>
+</html>
