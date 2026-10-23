@@ -2,6 +2,8 @@
 'use strict';
 const { chromium } = require('playwright');
 const path = require('path');
+const os = require('os');
+const fs = require('fs');
 
 const FILE = 'file://' + process.argv[2];
 
@@ -67,12 +69,25 @@ const FILE = 'file://' + process.argv[2];
     /Testado: «la casa». No vale./.test(razon));
   await page.click('#closeTextModal');
 
-  // Razón de testimonio
+  // Razón de testimonio, pidiendo el ordinal por el cuadro propio
   await page.click('#makeTestimonio');
+  await page.waitForTimeout(250);
+  check('el cuadro de entrada propio aparece', await page.locator('#askModal').isVisible());
+  await page.fill('#askValue', '1');
+  await page.click('#askAccept');
   await page.waitForTimeout(250);
   const testimonio = await page.locator('#textModalBody').inputValue();
   check('razón de testimonio', /^ES PRIMER TESTIMONIO/.test(testimonio));
   await page.click('#closeTextModal');
+  await page.waitForTimeout(150);
+
+  // Cancelar el cuadro de entrada no debe dejar la interfaz bloqueada.
+  await page.click('#insertAmount');
+  await page.waitForTimeout(250);
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(250);
+  check('cancelar el cuadro de entrada libera la interfaz',
+    !(await page.locator('#askModal').isVisible()));
 
   // Vista de caras
   await page.click('[data-tab="preview"]');
@@ -141,7 +156,8 @@ const FILE = 'file://' + process.argv[2];
   check('instantáneas registradas', (await page.locator('#snapshotList .snapshotRow').count()) >= 1);
 
   // PDF con la geometría configurada
-  const pdfPath = path.join(path.dirname(process.argv[2]), 'salida.pdf');
+  // El PDF de prueba va a un temporal, no junto al archivo que se examina.
+  const pdfPath = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'pf-pdf-')), 'salida.pdf');
   await page.click('[data-tab="editor"]');
   await page.locator('#docList .docItem').first().click();
   await page.waitForTimeout(300);
@@ -152,7 +168,7 @@ const FILE = 'file://' + process.argv[2];
     area.style.display = 'block';
   });
   await page.pdf({ path: pdfPath, width: '216mm', height: '330mm', printBackground: true });
-  check('PDF generado', require('fs').statSync(pdfPath).size > 1000);
+  check('PDF generado', fs.statSync(pdfPath).size > 1000);
 
   // Anchos de ventana
   for (const width of [1440, 1280, 1024, 768, 390]) {

@@ -271,6 +271,31 @@ th { background: var(--accent-soft); color: var(--accent); }
 
 .tariffEditor { margin-top: 14px; display: grid; gap: 10px; }
 
+/* Elementos exclusivos de la aplicación de escritorio. */
+.soloApp { display: none; }
+body.esAplicacion .soloApp { display: inline-flex; }
+body.esAplicacion .dataBox { display: flex; }
+
+.dataBox {
+  align-items: center; gap: 14px; margin-top: 16px;
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 14px 16px;
+}
+.dataBox > div { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.dataBox code {
+  font-size: .85rem; color: var(--accent); word-break: break-all;
+  background: var(--accent-soft); border-radius: 6px; padding: 2px 6px;
+}
+.dataBox small code { background: none; padding: 0; }
+
+/* Durante la exportación a PDF sólo debe existir el área de impresión. */
+body.exportandoPDF .shell,
+body.exportandoPDF #notice { display: none; }
+body.exportandoPDF #printArea { display: block; }
+body.exportandoPDF #printArea .page { page-break-after: always; break-after: page; }
+body.exportandoPDF #printArea .page:last-child { page-break-after: auto; break-after: auto; }
+body.exportandoPDF #printArea .page:not(.calibration) .guide { display: none; }
+
 /* ------------------------- Avisos y modales ------------------------- */
 
 #notice {
@@ -404,9 +429,18 @@ th { background: var(--accent-soft); color: var(--accent); }
       <h3 class="blockTitle">Trabajo reciente</h3>
       <div id="recentDocs" class="recentList"></div>
 
-      <h3 class="blockTitle">Copias de seguridad de la sesión</h3>
-      <p class="muted small">Se guarda una instantánea antes de borrar, restaurar o sustituir texto. Viven en este navegador: el respaldo JSON sigue siendo el resguardo definitivo.</p>
+      <h3 class="blockTitle">Copias de seguridad</h3>
+      <p class="muted small">Se guarda una instantánea antes de borrar, restaurar o sustituir texto.</p>
       <div id="snapshotList" class="snapshotList"></div>
+
+      <div class="dataBox soloApp">
+        <div>
+          <strong>Tus datos están en archivos de esta carpeta</strong>
+          <code id="dataFolder"></code>
+          <small class="muted">Además de <code>datos.json</code>, cada operación irreversible deja una copia fechada en <code>respaldos/</code>. Podés copiar esa carpeta a tu sistema de respaldos.</small>
+        </div>
+        <button id="openDataFolder" class="ghost">Abrir la carpeta</button>
+      </div>
     </section>
 
     <!-- ---------------- Escrituras ---------------- -->
@@ -437,7 +471,7 @@ th { background: var(--accent-soft); color: var(--accent); }
             <button id="emptyNew">Crear escritura</button>
           </div>
 
-          <form id="docForm" autocomplete="off" onsubmit="return false">
+          <form id="docForm" autocomplete="off">
             <div class="docHeader">
               <h2 id="docHeading">Escritura</h2>
               <span id="docStatusBadge" class="statusPill">Borrador</span>
@@ -504,8 +538,8 @@ th { background: var(--accent-soft); color: var(--accent); }
             </label>
 
             <div class="docActions">
-              <button id="save">Guardar</button>
-              <button id="goPreview" class="secondary">Revisar folios</button>
+              <button id="save" type="button">Guardar</button>
+              <button id="goPreview" type="button" class="secondary">Revisar folios</button>
               <button id="importText" type="button" class="ghost">Importar TXT</button>
               <input type="file" id="textFile" accept=".txt,text/plain" hidden>
               <button id="exportText" type="button" class="ghost">Exportar TXT</button>
@@ -546,6 +580,7 @@ th { background: var(--accent-soft); color: var(--accent); }
           </select>
         </label>
         <button id="print">Imprimir</button>
+        <button id="savePDF" class="secondary soloApp">Guardar como PDF</button>
         <button id="previewCalibrate" class="ghost">Calibración</button>
       </div>
 
@@ -556,7 +591,7 @@ th { background: var(--accent-soft); color: var(--accent); }
     <section id="tomo" class="tab">
       <div class="card">
         <h2>Datos del tomo</h2>
-        <form id="tomoForm" class="grid three" onsubmit="return false">
+        <form id="tomoForm" class="grid three">
           <label>Número de tomo<input id="tomoNumber" type="number" min="1" step="1"></label>
           <label>Folios del tomo<input id="tomoFolios" type="number" min="1" step="1"></label>
           <label>Folios ocupados<input id="tomoUsed" type="text" readonly></label>
@@ -759,6 +794,20 @@ th { background: var(--accent-soft); color: var(--accent); }
       <button id="textModalCopy" class="ghost">Copiar</button>
       <button id="closeTextModal" class="ghost">Cerrar</button>
     </div>
+  </div>
+</div>
+
+<div id="askModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="askTitle" hidden>
+  <div class="modalBox">
+    <h2 id="askTitle">Dato</h2>
+    <form id="askForm">
+      <label id="askLabel" for="askValue">Valor<input id="askValue" type="text" autocomplete="off"></label>
+      <p id="askHint" class="muted small"></p>
+      <div class="rowActions">
+        <button id="askAccept" type="submit">Aceptar</button>
+        <button id="askCancel" type="button" class="ghost">Cancelar</button>
+      </div>
+    </form>
   </div>
 </div>
 
@@ -1638,8 +1687,20 @@ th { background: var(--accent-soft); color: var(--accent); }
   const SNAP_KEY = 'protocolo-facil-v2-snapshots';
   const SNAP_LIMIT = 12;
 
+  /* En la aplicación de escritorio los datos son archivos reales del disco.
+     El puente nativo expone la misma forma que localStorage, así que basta
+     con cambiar el almacén y los nombres de las claves. */
+  const NATIVE_KEY = 'datos.json';
+  const NATIVE_SNAP_KEY = 'instantaneas.json';
+  const nativeStore = () =>
+    (root.pfNativo && root.pfNativo.almacen) ? root.pfNativo.almacen : null;
+
   function createStore(storage) {
-    const backing = storage || (typeof localStorage !== 'undefined' ? localStorage : null);
+    const native = storage ? null : nativeStore();
+    const backing = storage || native ||
+      (typeof localStorage !== 'undefined' ? localStorage : null);
+    const dataKey = native ? NATIVE_KEY : KEY;
+    const snapKey = native ? NATIVE_SNAP_KEY : SNAP_KEY;
     let writable = Boolean(backing);
     const listeners = [];
 
@@ -1651,7 +1712,7 @@ th { background: var(--accent-soft); color: var(--accent); }
     function load() {
       if (!backing) return { state: PF.initialState(), writable: false, reason: 'sin almacenamiento' };
       try {
-        const raw = backing.getItem(KEY) || backing.getItem(LEGACY_KEY);
+        const raw = backing.getItem(dataKey) || (native ? null : backing.getItem(LEGACY_KEY));
         if (!raw) return { state: PF.initialState(), writable: true };
         return { state: PF.checkState(JSON.parse(raw)), writable: true };
       } catch (e) {
@@ -1665,7 +1726,7 @@ th { background: var(--accent-soft); color: var(--accent); }
       state.updated = new Date().toISOString();
       if (!backing || !writable) return false;
       try {
-        backing.setItem(KEY, JSON.stringify(state));
+        backing.setItem(dataKey, JSON.stringify(state));
         notify({ type: 'saved', at: state.updated });
         return true;
       } catch (e) {
@@ -1680,7 +1741,7 @@ th { background: var(--accent-soft); color: var(--accent); }
     function readSnapshots() {
       if (!backing) return [];
       try {
-        const raw = backing.getItem(SNAP_KEY);
+        const raw = backing.getItem(snapKey);
         const list = raw ? JSON.parse(raw) : [];
         return Array.isArray(list) ? list : [];
       } catch (e) {
@@ -1699,14 +1760,14 @@ th { background: var(--accent-soft); color: var(--accent); }
       list = list.slice(0, SNAP_LIMIT);
       while (list.length) {
         try {
-          backing.setItem(SNAP_KEY, JSON.stringify(list));
+          backing.setItem(snapKey, JSON.stringify(list));
           notify({ type: 'snapshot', label });
           return true;
         } catch (e) {
           list.pop();
         }
       }
-      try { backing.removeItem(SNAP_KEY); } catch (e) { /* sin espacio ni para limpiar */ }
+      try { backing.removeItem(snapKey); } catch (e) { /* sin espacio ni para limpiar */ }
       return false;
     }
 
@@ -1724,13 +1785,14 @@ th { background: var(--accent-soft); color: var(--accent); }
 
     function clearSnapshots() {
       if (!backing) return;
-      try { backing.removeItem(SNAP_KEY); } catch (e) { /* nada que hacer */ }
+      try { backing.removeItem(snapKey); } catch (e) { /* nada que hacer */ }
     }
 
     return {
       KEY, LEGACY_KEY, SNAP_KEY, SNAP_LIMIT,
       load, save, snapshot, snapshots, restoreSnapshot, clearSnapshots,
       isWritable: () => writable,
+      isNative: () => Boolean(native),
       onEvent: fn => { listeners.push(fn); }
     };
   }
@@ -1823,7 +1885,30 @@ th { background: var(--accent-soft); color: var(--accent); }
     };
   }
 
+  /** Puente con la aplicación de escritorio; null en el navegador. */
+  const nativo = (typeof pfNativo !== 'undefined') ? pfNativo : null;
+
+  const FILTRO_JSON = [{ name: 'Respaldo de Protocolo Fácil', extensions: ['json'] }];
+
+  function extensionDe(name) {
+    const m = /\.([a-z0-9]+)$/i.exec(name);
+    return m ? m[1].toLowerCase() : 'txt';
+  }
+
+  /**
+   * Entrega un archivo al usuario. En la aplicación abre el cuadro de
+   * guardado del sistema; en el navegador descarga.
+   */
   function download(name, body, type) {
+    if (nativo) {
+      const ext = extensionDe(name);
+      nativo.guardarComo(name, body, [{ name: ext.toUpperCase(), extensions: [ext] }])
+        .then(r => {
+          if (r.ok) message('Guardado en ' + r.ruta + '.');
+          else if (!r.cancelado) message(r.error || 'No se pudo guardar.', true);
+        });
+      return;
+    }
     const blob = new Blob([body], { type });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -1835,15 +1920,29 @@ th { background: var(--accent-soft); color: var(--accent); }
     setTimeout(() => URL.revokeObjectURL(url), 30000);
   }
 
+  /** Respaldo pedido por el usuario: elige dónde guardarlo. */
   function backup() {
-    download('ProtocoloFacil-respaldo-' + today() + '-' + Date.now() + '.json',
-      JSON.stringify(state, null, 2), 'application/json');
+    const nombre = 'ProtocoloFacil-respaldo-' + today() + '.json';
+    const contenido = JSON.stringify(state, null, 2);
+    if (nativo) {
+      nativo.guardarComo(nombre, contenido, FILTRO_JSON).then(r => {
+        if (r.ok) message('Respaldo guardado en ' + r.ruta + '.');
+        else if (!r.cancelado) message(r.error || 'No se pudo guardar el respaldo.', true);
+      });
+      return;
+    }
+    download(nombre, contenido, 'application/json');
   }
 
-  /** Instantánea interna + respaldo descargado, antes de algo irreversible. */
+  /**
+   * Instantánea previa a una operación irreversible. En la aplicación deja
+   * además una copia fechada en la carpeta de respaldos, sin interrumpir;
+   * en el navegador descarga una copia, que es lo único disponible allí.
+   */
   function guardChange(label) {
     store.snapshot(state, label);
-    backup();
+    if (nativo) nativo.respaldoAutomatico(JSON.stringify(state, null, 2), label);
+    else backup();
     renderSnapshots();
   }
 
@@ -2151,6 +2250,13 @@ th { background: var(--accent-soft); color: var(--accent); }
     btn.addEventListener('click', guard(() => showTab(btn.dataset.tab)));
   });
 
+  /* Los formularios que no envían nada se frenan acá y no con un atributo
+     incrustado: la política de seguridad de la aplicación bloquea esos
+     atributos, y sin este freno la página navegaría al pulsar Intro. */
+  for (const id of ['docForm', 'tomoForm']) {
+    $(id).addEventListener('submit', e => e.preventDefault());
+  }
+
   /* ------------------------------------------------------------------ *
    * Libros y escrituras
    * ------------------------------------------------------------------ */
@@ -2270,24 +2376,37 @@ th { background: var(--accent-soft); color: var(--accent); }
     message('Respaldo JSON preparado. Conservá una copia fuera de la aplicación.');
   });
 
-  $('restore').onclick = () => $('restoreFile').click();
+  $('restore').onclick = guard(() => {
+    if (!nativo) { $('restoreFile').click(); return; }
+    nativo.abrirArchivo(FILTRO_JSON).then(guard(r => {
+      if (!r.ok) {
+        if (!r.cancelado) message(r.error || 'No se pudo abrir el archivo.', true);
+        return;
+      }
+      applyRestore(PF.checkState(JSON.parse(r.contenido)));
+    }));
+  });
+
+  /** Sustituye el conjunto completo por `next`, con copia previa. */
+  function applyRestore(next) {
+    if (!confirm('¿Restaurar este respaldo y sustituir los datos de la sesión? Se guardará antes una copia del estado actual.')) return;
+    flush();
+    guardChange('Antes de restaurar un respaldo');
+    state = next;
+    storageOK = true;
+    selectedBook = state.books[0] ? state.books[0].id : null;
+    selectedDoc = (state.docs.find(d => d.bookId === selectedBook) || {}).id || null;
+    persist();
+    renderEverything();
+    message('Respaldo restaurado.');
+  }
 
   $('restoreFile').onchange = async () => {
     const file = $('restoreFile').files[0];
     if (!file) return;
     try {
       if (file.size > 25000000) throw Error('Respaldo mayor de 25 MB.');
-      const next = PF.checkState(JSON.parse(await file.text()));
-      if (!confirm('¿Restaurar este respaldo y sustituir los datos de la sesión? Se descargará antes una copia del estado actual.')) return;
-      flush();
-      guardChange('Antes de restaurar un respaldo');
-      state = next;
-      storageOK = true;
-      selectedBook = state.books[0] ? state.books[0].id : null;
-      selectedDoc = (state.docs.find(d => d.bookId === selectedBook) || {}).id || null;
-      persist();
-      renderEverything();
-      message('Respaldo restaurado.');
+      applyRestore(PF.checkState(JSON.parse(await file.text())));
     } catch (e) {
       message(e.message, true);
     } finally {
@@ -2307,7 +2426,27 @@ th { background: var(--accent-soft); color: var(--accent); }
     if (d) download('Escritura-' + d.number + '.rtf', PF.rtf(d.text), 'application/rtf');
   });
 
-  $('importText').onclick = () => $('textFile').click();
+  $('importText').onclick = guard(() => {
+    if (!nativo) { $('textFile').click(); return; }
+    nativo.abrirArchivo([{ name: 'Texto sin formato', extensions: ['txt'] }]).then(guard(r => {
+      if (!r.ok) {
+        if (!r.cancelado) message(r.error || 'No se pudo abrir el archivo.', true);
+        return;
+      }
+      applyImport(r.contenido);
+    }));
+  });
+
+  /** Sustituye el texto de la escritura actual, con copia previa. */
+  function applyImport(value) {
+    if ($('text').value.trim() &&
+        !confirm('¿Reemplazar el texto de esta escritura? Se guardará una instantánea.')) return;
+    flush();
+    guardChange('Antes de importar un TXT');
+    $('text').value = PF.normalize(value);
+    flush();
+    message('Texto importado.');
+  }
 
   $('textFile').onchange = async () => {
     const file = $('textFile').files[0];
@@ -2317,14 +2456,7 @@ th { background: var(--accent-soft); color: var(--accent); }
       if (!file.name.toLowerCase().endsWith('.txt')) {
         throw Error('Para importar un RTF, abrilo en TextEdit y guardalo como texto sin formato (.txt).');
       }
-      const value = await file.text();
-      if ($('text').value.trim() &&
-          !confirm('¿Reemplazar el texto de esta escritura? Se guardará una instantánea.')) return;
-      flush();
-      guardChange('Antes de importar un TXT');
-      $('text').value = PF.normalize(value);
-      flush();
-      message('Texto importado.');
+      applyImport(await file.text());
     } catch (e) {
       message(e.message, true);
     } finally {
@@ -2357,9 +2489,12 @@ th { background: var(--accent-soft); color: var(--accent); }
   });
 
   $('insertAmount').onclick = guard(() => {
-    const raw = prompt('Importe a convertir (por ejemplo 25 000 000,50):');
-    if (raw === null || !raw.trim()) return;
-    insertIntoText(PF.amountWords(raw, state.tariff.moneda || 'CRC'));
+    askText('Monto en letras', 'Importe', '',
+      'Por ejemplo 25 000 000,50. Se convierte con la moneda de las tarifas.')
+      .then(guard(raw => {
+        if (raw === null || !raw.trim()) return;
+        insertIntoText(PF.amountWords(raw, state.tariff.moneda || 'CRC'));
+      }));
   });
 
   $('insertRazon').onclick = guard(() => {
@@ -2375,12 +2510,17 @@ th { background: var(--accent-soft); color: var(--accent); }
     const d = currentDoc();
     const book = currentBook();
     if (!d || !book) throw Error('Seleccioná una escritura.');
-    const ordinalRaw = prompt('¿Qué testimonio es? (1 = primer testimonio)', '1');
-    if (ordinalRaw === null) return;
-    const ordinal = Number(ordinalRaw);
-    if (!Number.isInteger(ordinal) || ordinal < 1) throw Error('Indicá un número entero mayor que cero.');
-    const text = PFN.razonTestimonio(d, book, state.notary, { ordinal, date: today() });
-    openTextModal('Razón de testimonio', text, true);
+    askText('Razón de testimonio', '¿Qué testimonio es?', '1',
+      'Uno es el primer testimonio; dos, el segundo, y así.')
+      .then(guard(raw => {
+        if (raw === null) return;
+        const ordinal = Number(raw);
+        if (!Number.isInteger(ordinal) || ordinal < 1) {
+          throw Error('Indicá un número entero mayor que cero.');
+        }
+        const text = PFN.razonTestimonio(d, book, state.notary, { ordinal, date: today() });
+        openTextModal('Razón de testimonio', text, true);
+      }));
   });
 
   $('findText').onclick = () => {
@@ -3178,6 +3318,31 @@ th { background: var(--accent-soft); color: var(--accent); }
     if (lastFocus) lastFocus.focus();
   }
 
+  /**
+   * Pide un dato al usuario. No se usa prompt() porque Electron no lo admite:
+   * en la aplicación lanzaría un error en lugar de preguntar.
+   * Devuelve una promesa con el texto, o null si se cancela.
+   */
+  function askText(title, label, defaultValue, hint) {
+    $('askTitle').textContent = title;
+    $('askLabel').childNodes[0].nodeValue = label;
+    $('askValue').value = defaultValue == null ? '' : String(defaultValue);
+    $('askHint').textContent = hint || '';
+    openModal('askModal');
+    $('askValue').select();
+
+    return new Promise(resolve => {
+      const cerrar = valor => {
+        $('askForm').onsubmit = null;
+        $('askCancel').onclick = null;
+        closeModal('askModal');
+        resolve(valor);
+      };
+      $('askForm').onsubmit = e => { e.preventDefault(); cerrar($('askValue').value); };
+      $('askCancel').onclick = () => cerrar(null);
+    });
+  }
+
   function openTextModal(title, body, allowInsert) {
     $('textModalTitle').textContent = title;
     $('textModalBody').value = body;
@@ -3226,14 +3391,21 @@ th { background: var(--accent-soft); color: var(--accent); }
   $('closeHelp').onclick = () => closeModal('helpModal');
   $('helpDone').onclick = () => closeModal('helpModal');
 
-  for (const id of ['helpModal', 'bookModal', 'textModal']) {
-    $(id).addEventListener('click', e => { if (e.target === $(id)) closeModal(id); });
+  /* askModal entrega una promesa: cerrarlo por fuera debe resolverla como
+     cancelación, o quien lo esperaba quedaría colgado. */
+  function dismissModal(id) {
+    if (id === 'askModal' && $('askCancel').onclick) { $('askCancel').onclick(); return; }
+    closeModal(id);
+  }
+
+  for (const id of ['helpModal', 'bookModal', 'textModal', 'askModal']) {
+    $(id).addEventListener('click', e => { if (e.target === $(id)) dismissModal(id); });
   }
 
   document.addEventListener('keydown', e => {
-    const open = ['helpModal', 'bookModal', 'textModal'].find(id => !$(id).hidden);
+    const open = ['helpModal', 'bookModal', 'textModal', 'askModal'].find(id => !$(id).hidden);
     if (!open) return;
-    if (e.key === 'Escape') { e.preventDefault(); closeModal(open); }
+    if (e.key === 'Escape') { e.preventDefault(); dismissModal(open); }
     if (e.key === 'Tab') {
       const nodes = Array.from($(open).querySelectorAll('button, input, textarea, select'))
         .filter(n => !n.disabled && !n.hidden);
@@ -3268,16 +3440,79 @@ th { background: var(--accent-soft); color: var(--accent); }
     renderHome();
   }
 
+  /* ------------------------------------------------------------------ *
+   * Integración con la aplicación de escritorio
+   * ------------------------------------------------------------------ */
+
+  function savePDF() {
+    if (!nativo) { message('Usá Imprimir y elegí «Guardar como PDF» en el diálogo del sistema.'); return; }
+    flush();
+    const doc = currentDoc();
+    if (!doc || !doc.text.trim()) throw Error('No hay texto para guardar.');
+    if (previewSignature !== JSON.stringify([doc, state.profile])) showPreview();
+    const warn = documentWarnings(doc, pages);
+    if (warn.some(w => w.indexOf('ocupados') >= 0 || w.indexOf('excede') >= 0)) {
+      throw Error(warn.join('\n'));
+    }
+    $('paperSize').textContent = '@page { size: ' + state.profile.width + 'mm ' +
+      state.profile.height + 'mm; margin: 0; }';
+    $('printArea').replaceChildren(...pages.map(p => makePage(p, false)));
+    document.body.classList.add('exportandoPDF');
+    nativo.guardarPDF('Escritura-' + doc.number + '.pdf',
+      { anchoMm: state.profile.width, altoMm: state.profile.height })
+      .then(r => {
+        document.body.classList.remove('exportandoPDF');
+        if (r.ok) message('PDF guardado en ' + r.ruta + '.');
+        else if (!r.cancelado) message(r.error || 'No se pudo guardar el PDF.', true);
+      });
+  }
+
+  function setupNative() {
+    if (!nativo) return;
+    document.body.classList.add('esAplicacion');
+
+    const ruta = nativo.rutaDatos();
+    const pie = $('dataFolder');
+    if (pie) {
+      pie.textContent = ruta;
+      pie.title = ruta;
+    }
+    const abrir = $('openDataFolder');
+    if (abrir) abrir.onclick = () => nativo.abrirCarpetaDatos();
+
+    const pdf = $('savePDF');
+    if (pdf) pdf.onclick = guard(savePDF);
+
+    const acciones = {
+      'menu:nuevaEscritura': () => $('newDoc').click(),
+      'menu:guardar': () => { flush(); renderList(); message('Escritura guardada.'); },
+      'menu:respaldar': () => { flush(); backup(); },
+      'menu:restaurar': () => $('restore').click(),
+      'menu:imprimir': () => { showTab('preview'); $('print').click(); },
+      'menu:pdf': () => savePDF(),
+      'menu:ayuda': () => showHelp(true)
+    };
+    nativo.alMenu(guard(canal => {
+      if (canal.indexOf('menu:ir:') === 0) { showTab(canal.slice('menu:ir:'.length)); return; }
+      const accion = acciones[canal];
+      if (accion) accion();
+    }));
+  }
+
   $('welcomeDate').textContent = new Date()
     .toLocaleDateString('es-CR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
     .toLocaleUpperCase('es');
 
+  setupNative();
   renderEverything();
   showTab('home');
 
   if (!storageOK) {
-    message('No se pudieron leer o escribir los datos locales. El trabajo queda en memoria: ' +
-      'descargá un respaldo JSON antes de cerrar. ' + (loaded.reason || ''), true);
+    message(nativo
+      ? 'No se pudieron leer o escribir los archivos de datos. El trabajo queda en memoria: ' +
+        'guardá un respaldo antes de cerrar. ' + (loaded.reason || '')
+      : 'No se pudieron leer o escribir los datos locales. El trabajo queda en memoria: ' +
+        'descargá un respaldo JSON antes de cerrar. ' + (loaded.reason || ''), true);
   } else {
     persist();
   }

@@ -264,6 +264,31 @@ th { background: var(--accent-soft); color: var(--accent); }
 
 .tariffEditor { margin-top: 14px; display: grid; gap: 10px; }
 
+/* Elementos exclusivos de la aplicación de escritorio. */
+.soloApp { display: none; }
+body.esAplicacion .soloApp { display: inline-flex; }
+body.esAplicacion .dataBox { display: flex; }
+
+.dataBox {
+  align-items: center; gap: 14px; margin-top: 16px;
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 14px 16px;
+}
+.dataBox > div { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.dataBox code {
+  font-size: .85rem; color: var(--accent); word-break: break-all;
+  background: var(--accent-soft); border-radius: 6px; padding: 2px 6px;
+}
+.dataBox small code { background: none; padding: 0; }
+
+/* Durante la exportación a PDF sólo debe existir el área de impresión. */
+body.exportandoPDF .shell,
+body.exportandoPDF #notice { display: none; }
+body.exportandoPDF #printArea { display: block; }
+body.exportandoPDF #printArea .page { page-break-after: always; break-after: page; }
+body.exportandoPDF #printArea .page:last-child { page-break-after: auto; break-after: auto; }
+body.exportandoPDF #printArea .page:not(.calibration) .guide { display: none; }
+
 /* ------------------------- Avisos y modales ------------------------- */
 
 #notice {

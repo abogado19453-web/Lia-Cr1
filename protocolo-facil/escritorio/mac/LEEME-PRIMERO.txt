@@ -1,0 +1,59 @@
+PROTOCOLO FÁCIL — INSTALACIÓN EN MAC
+====================================
+
+PASOS
+
+1. Descomprimí este ZIP completo (doble clic en Finder).
+2. Doble clic en «Instalar en Mac.command».
+3. Si macOS pregunta, elegí Abrir. El instalador copia la aplicación a
+   la carpeta Aplicaciones y le quita la marca de cuarentena.
+
+Si al hacer doble clic macOS dice que no se puede abrir porque proviene
+de un desarrollador no identificado: clic secundario sobre el archivo →
+Abrir → Abrir. Eso autoriza ese archivo concreto, sin tocar la
+configuración de seguridad del equipo.
+
+
+POR QUÉ APARECE ESA ADVERTENCIA
+
+La aplicación lleva firma ad-hoc, no firma Developer ID de Apple ni
+certificación (notarización). Eso exige una cuenta de desarrollador de
+Apple de pago y un Mac para firmar, que no se usaron en esta entrega.
+El instalador no pide contraseña de administrador y no desactiva
+ninguna protección del sistema.
+
+
+DÓNDE QUEDAN TUS DATOS
+
+    ~/Library/Application Support/Protocolo Facil/
+        datos.json          libros, escrituras, plantillas y perfil
+        instantaneas.json   copias previas a cada operación irreversible
+        respaldos/          copias fechadas, nunca sobrescritas
+
+Son archivos de verdad en tu disco. Reinstalar o actualizar la
+aplicación no los toca. Podés incluir esa carpeta en Time Machine o
+copiarla a donde guardes tus respaldos.
+
+Desde el menú Archivo → «Abrir la carpeta de datos» llegás ahí
+directamente.
+
+
+ANTES DE USAR PAPEL DE PROTOCOLO
+
+Imprimí las pruebas de calibración de frente y de vuelto EN PAPEL
+COMÚN y comprobá que los renglones coincidan con tu papel real. En el
+diálogo de impresión usá escala 100 %, el tamaño de papel exacto y sin
+ajuste automático al área imprimible.
+
+Esta entrega no se probó en una impresora física: la calibración es
+tuya y es indispensable.
+
+
+ALCANCE
+
+Las razones y los modelos son estructuras de trabajo parametrizables,
+no fórmulas verificadas para un caso concreto. Las tarifas de
+honorarios y timbres son editables y vienen marcadas «verificar
+vigencia»: la confrontación con el arancel y la normativa aplicable
+corresponde al notario responsable. El estado «Firmada» es una
+anotación manual, no una firma electrónica.

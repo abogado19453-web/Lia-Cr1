@@ -20,8 +20,20 @@
   const SNAP_KEY = 'protocolo-facil-v2-snapshots';
   const SNAP_LIMIT = 12;
 
+  /* En la aplicación de escritorio los datos son archivos reales del disco.
+     El puente nativo expone la misma forma que localStorage, así que basta
+     con cambiar el almacén y los nombres de las claves. */
+  const NATIVE_KEY = 'datos.json';
+  const NATIVE_SNAP_KEY = 'instantaneas.json';
+  const nativeStore = () =>
+    (root.pfNativo && root.pfNativo.almacen) ? root.pfNativo.almacen : null;
+
   function createStore(storage) {
-    const backing = storage || (typeof localStorage !== 'undefined' ? localStorage : null);
+    const native = storage ? null : nativeStore();
+    const backing = storage || native ||
+      (typeof localStorage !== 'undefined' ? localStorage : null);
+    const dataKey = native ? NATIVE_KEY : KEY;
+    const snapKey = native ? NATIVE_SNAP_KEY : SNAP_KEY;
     let writable = Boolean(backing);
     const listeners = [];
 
@@ -33,7 +45,7 @@
     function load() {
       if (!backing) return { state: PF.initialState(), writable: false, reason: 'sin almacenamiento' };
       try {
-        const raw = backing.getItem(KEY) || backing.getItem(LEGACY_KEY);
+        const raw = backing.getItem(dataKey) || (native ? null : backing.getItem(LEGACY_KEY));
         if (!raw) return { state: PF.initialState(), writable: true };
         return { state: PF.checkState(JSON.parse(raw)), writable: true };
       } catch (e) {
@@ -47,7 +59,7 @@
       state.updated = new Date().toISOString();
       if (!backing || !writable) return false;
       try {
-        backing.setItem(KEY, JSON.stringify(state));
+        backing.setItem(dataKey, JSON.stringify(state));
         notify({ type: 'saved', at: state.updated });
         return true;
       } catch (e) {
@@ -62,7 +74,7 @@
     function readSnapshots() {
       if (!backing) return [];
       try {
-        const raw = backing.getItem(SNAP_KEY);
+        const raw = backing.getItem(snapKey);
         const list = raw ? JSON.parse(raw) : [];
         return Array.isArray(list) ? list : [];
       } catch (e) {
@@ -81,14 +93,14 @@
       list = list.slice(0, SNAP_LIMIT);
       while (list.length) {
         try {
-          backing.setItem(SNAP_KEY, JSON.stringify(list));
+          backing.setItem(snapKey, JSON.stringify(list));
           notify({ type: 'snapshot', label });
           return true;
         } catch (e) {
           list.pop();
         }
       }
-      try { backing.removeItem(SNAP_KEY); } catch (e) { /* sin espacio ni para limpiar */ }
+      try { backing.removeItem(snapKey); } catch (e) { /* sin espacio ni para limpiar */ }
       return false;
     }
 
@@ -106,13 +118,14 @@
 
     function clearSnapshots() {
       if (!backing) return;
-      try { backing.removeItem(SNAP_KEY); } catch (e) { /* nada que hacer */ }
+      try { backing.removeItem(snapKey); } catch (e) { /* nada que hacer */ }
     }
 
     return {
       KEY, LEGACY_KEY, SNAP_KEY, SNAP_LIMIT,
       load, save, snapshot, snapshots, restoreSnapshot, clearSnapshots,
       isWritable: () => writable,
+      isNative: () => Boolean(native),
       onEvent: fn => { listeners.push(fn); }
     };
   }

@@ -16,6 +16,7 @@ No necesitás leer el código, pero sí saber a qué archivo apunta cada pedido.
 
 | Si querés cambiar… | Decime que es en… | Qué vive ahí |
 |---|---|---|
+| La ventana, el menú de arriba, dónde se guardan los archivos, los instaladores | **la aplicación** (`escritorio/`) | Lo que hace que sea un programa y no una página |
 | Cómo se reparte el texto en los folios, las letras de números/fechas/horas, qué respaldo se acepta | **el motor** (`app/engine.js`) | Cálculo puro. Si algo sale mal acá, sale mal en todas las pantallas |
 | Razones de apertura, cierre, testimonio, entrelineados, índice, honorarios y timbres | **lo notarial** (`app/notarial.js`) | Las fórmulas costarricenses |
 | Guardado, instantáneas, respaldos | **el almacén** (`app/store.js`) | Dónde viven los datos |
@@ -23,7 +24,7 @@ No necesitás leer el código, pero sí saber a qué archivo apunta cada pedido.
 | Colores, tamaños, cómo se ve | **el estilo** (`app/style.css`) | Apariencia |
 | Qué campos y secciones existen | **la página** (`app/index.html`) | La estructura |
 
-Regla práctica: **si es una fórmula o un cálculo, es el motor o lo notarial. Si es un botón o una pantalla, es la interfaz.**
+Regla práctica: **si es una fórmula o un cálculo, es el motor o lo notarial. Si es un botón o una pantalla, es la interfaz. Si es el menú de arriba, la ventana o el instalador, es la aplicación.**
 
 ---
 
@@ -68,7 +69,7 @@ Eso me obliga a adivinar y probablemente te devuelva algo que no querías.
 ## 5. Las tres reglas que te protegen
 
 **Regla 1 — Pruebas antes que confianza.**
-El programa tiene 252 comprobaciones automáticas. Cada vez que cambie algo, las corro. Si una falla, no te entrego el cambio: lo arreglo primero. Vos podés exigirlo siempre: *«corré las pruebas y mostrame el resultado»*.
+El programa tiene 303 comprobaciones automáticas. Cada vez que cambie algo, las corro. Si una falla, no te entrego el cambio: lo arreglo primero. Vos podés exigirlo siempre: *«corré las pruebas y mostrame el resultado»*.
 
 **Regla 2 — Un cambio a la vez.**
 Pedir cinco cosas juntas suena eficiente y no lo es: si algo sale mal, no sabemos cuál de las cinco fue. Pedí de a una y probá entre medio.
@@ -86,8 +87,10 @@ Yo redacto la fórmula y la calculo bien. **La vigencia del arancel, de los timb
 | Agregar un campo a la escritura | Bajo | Decime si debe salir en el índice |
 | Nueva razón o fórmula notarial | Bajo | Dame el texto modelo completo una vez |
 | Nueva pantalla o sección | Medio | Decime qué se ve y qué botones tiene |
+| Agregar una opción al menú de arriba | Bajo | Decime en qué menú y qué hace |
 | Cambiar cómo se reparte el texto en folios | **Alto** | Es el corazón del programa; lo hago con pruebas nuevas |
-| Guardar en archivos del disco en vez del navegador | **Alto** | Safari lo permite a medias; conversémoslo antes |
+| Cambiar dónde o cómo se guardan los archivos | **Alto** | Es lo que protege tu trabajo; lo toco con cuidado y con pruebas |
+| Que el instalador deje de dar advertencias | **No depende de mí** | Hace falta comprar certificados de firma a Microsoft y a Apple |
 | Importar la base del programa Windows | **Muy alto** | Formato cerrado; hoy no está en el alcance |
 
 ---
@@ -100,13 +103,13 @@ Yo redacto la fórmula y la calculo bien. **La vigencia del arancel, de los timb
       └────────────  probás en tu Mac  ←─────────────┘
 ```
 
-**Tu parte, que no puedo hacer yo:** abrirlo en tu Mac, imprimir la calibración en papel común, medir contra el papel real y decirme cuántos milímetros hay que mover. Eso no se puede simular desde acá: ninguna de las pruebas automáticas toca tu impresora.
+**Tu parte, que no puedo hacer yo:** instalarlo en tu equipo, imprimir la calibración en papel común, medir contra el papel real y decirme cuántos milímetros hay que mover. Eso no se puede simular desde acá: ninguna de las pruebas automáticas toca tu impresora, y acá no hay ni Windows ni Mac.
 
 ---
 
 ## 8. Cómo probar sin arriesgar trabajo real
 
-1. **Antes de probar algo nuevo**, descargá un respaldo con el botón **Respaldar**.
+1. **Antes de probar algo nuevo**, guardá un respaldo con **Archivo → Respaldar**. En la aplicación además queda una copia fechada en la carpeta `respaldos/`, pero el respaldo que importa es el que está fuera de la máquina.
 2. Probá con un libro inventado («Tomo de pruebas»), no con tu tomo en uso.
 3. Si algo se rompe, en **Inicio → Copias de seguridad de la sesión** volvés al punto anterior con un clic.
 4. Recién después, llevalo a tu trabajo real.
@@ -134,7 +137,9 @@ Decímelas una vez y quedan guardadas en el programa.
 | «La vista cambió. Revisá la distribución y volvé a imprimir» | Tocaste el texto o el perfil después de ver las caras | Mirá la vista otra vez y volvé a imprimir |
 | «Hay renglones ocupados por otra escritura» | Dos escrituras arrancan sobre los mismos renglones | Usá **Proponer el siguiente renglón libre** |
 | «Los renglones salen del papel» | La separación por la cantidad de renglones no cabe en el alto | Bajá la separación o la cantidad de renglones |
-| «Solo en memoria: descargá un respaldo» | Safari no está guardando | Descargá el JSON **ahora**, antes de cerrar |
+| «Solo en memoria: descargá un respaldo» | No se pudo escribir en el disco (o en el navegador, si usás la versión web) | Guardá el respaldo **ahora**, antes de cerrar |
+| Windows: «Windows protegió su PC» | El instalador no tiene certificado de firma | Más información → Ejecutar de todas formas |
+| Mac: «no se puede abrir porque proviene de un desarrollador no identificado» | Lo mismo, del lado de Apple | Clic secundario sobre el archivo → Abrir → Abrir |
 | «Quedan campos de plantilla sin reemplazar» | Hay `{Campo}` o `[Insertar …]` en el texto | Completalos antes de imprimir |
 
 ---
@@ -167,11 +172,24 @@ SALIÓ:    [qué salió, copiá el mensaje exacto]
 
 ---
 
-## 12. Lo que nunca deberías aceptar de mí
+## 12. Cada vez que te entregue una versión nueva
+
+Pedime siempre las tres cosas:
+
+1. **Los instaladores**, no sólo el código.
+2. **El resultado de las pruebas**, con el número de comprobaciones.
+3. **Qué no pude probar**, explícito.
+
+Si falta alguna, pedímela.
+
+---
+
+## 13. Lo que nunca deberías aceptar de mí
 
 - Que te entregue un cambio **sin haber corrido las pruebas**.
 - Que te diga que una cifra de arancel o timbre **está vigente**: no lo puedo verificar.
 - Que cambie la distribución de folios **sin avisarte** que hay que recalibrar.
-- Que te presente como probado en Mac algo que **sólo probé en Linux**.
+- Que te presente como probado en tu equipo algo que **sólo probé en Linux**.
+- Que te diga que las advertencias de SmartScreen o Gatekeeper **ya no van a aparecer**: sin certificados comprados, aparecen.
 
-Si ves alguna de las cuatro, reclamámela. Está bien reclamarla.
+Si ves alguna de las cinco, reclamámela. Está bien reclamarla.

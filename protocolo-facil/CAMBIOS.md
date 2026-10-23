@@ -1,5 +1,55 @@
 # Cambios
 
+## 0.4.0 — 23 de octubre de 2026
+
+Protocolo Fácil deja de ser una página que se abre en el navegador y pasa a ser **una aplicación de escritorio**, con instalador propio para Windows y para Mac.
+
+### Aplicación de escritorio
+
+- Programa nativo construido con Electron: ventana propia, icono propio, entrada en el menú Inicio y en Aplicaciones.
+- **Menú del sistema en español**: Archivo (nueva escritura, guardar, respaldar, restaurar, abrir la carpeta de datos, imprimir, guardar como PDF), Edición, Ir a, Ver y Ayuda, con sus atajos de teclado.
+- **Guardar como PDF** directo, sin pasar por el diálogo de impresión, respetando el tamaño exacto del papel configurado.
+- Una sola instancia a la vez: abrir el programa dos veces trae al frente la ventana que ya está abierta.
+
+### Los datos pasan a ser archivos de verdad
+
+Este es el cambio de fondo. Hasta la 0.3 todo vivía en el almacenamiento del navegador, y borrar los datos de Safari podía dejar el trabajo inaccesible. Ahora la aplicación guarda en archivos del disco, dentro de la carpeta de datos del usuario:
+
+```
+datos.json           libros, escrituras, plantillas y perfil
+instantaneas.json    copias previas a cada operación irreversible
+respaldos/           copias fechadas que nunca se sobrescriben
+```
+
+- **Escritura atómica**: se escribe a un temporal y se renombra, de modo que un corte de energía no deja un archivo truncado.
+- **Respaldo automático fechado** antes de cada operación irreversible, además de la instantánea interna. Se conservan los 200 más recientes.
+- La carpeta se abre desde el menú o desde el botón de la pantalla de inicio, y puede incluirse en Time Machine o en el sistema de respaldos del despacho.
+- Respaldar y restaurar usan los cuadros de diálogo del sistema; exportar TXT, RTF, CSV y PDF también.
+- La versión web sigue funcionando igual, con el almacenamiento del navegador, sin cambios para quien la use así.
+
+### Instaladores
+
+- **Windows**: instalador `.exe` (NSIS) en español, con elección de carpeta, accesos directos en el escritorio y en el menú Inicio, y desinstalador registrado en Agregar o quitar programas. No requiere permisos de administrador y no borra los datos al desinstalar.
+- **Mac**: paquetes para Apple Silicon y para Intel, cada uno con su script `Instalar en Mac.command`, que copia la aplicación a Aplicaciones y le quita la marca de cuarentena.
+- Los paquetes de Mac llevan **firma ad-hoc**: sin ella macOS no ejecuta la aplicación en Apple Silicon. No sustituye a la firma Developer ID ni a la certificación de Apple, que exigen cuenta de desarrollador y un Mac.
+- Icono propio en los tres formatos (PNG, ICO e ICNS), generado desde un único archivo fuente.
+
+### Seguridad
+
+- La interfaz corre aislada: sin Node, sin integración con el sistema y con política de seguridad de contenido estricta.
+- El proceso principal sólo admite sus dos archivos de datos: una ruta cualquiera es rechazada.
+- Ningún enlace externo se abre dentro de la aplicación, y la aplicación no hace ninguna petición de red.
+
+### Corregido
+
+- **Los botones Guardar y Revisar folios enviaban el formulario y hacían navegar la página.** Funcionaba por un atributo `onsubmit` incrustado que la política de seguridad bloquea; lo detectó la prueba de la aplicación. Los manejadores se registran ahora desde el código y el empaquetador rechaza cualquier atributo incrustado que vuelva a aparecer.
+
+### Pruebas
+
+De 252 a **303 comprobaciones**: se suman 21 sobre la aplicación real (arranque, aislamiento, escritura en disco, cuadros de entrada propios, persistencia tras cerrar y volver a abrir, respaldos fechados y rechazo de rutas ajenas), 3 sobre la capa de archivos y 2 en el navegador.
+
+---
+
 ## 0.3.0 — 22 de octubre de 2026
 
 Reconstrucción completa a partir del código fuente de la edición 0.2.0 (que no estaba compilado: era HTML y JavaScript dentro del paquete `.app`).

@@ -1,24 +1,60 @@
-# Protocolo Fácil 0.3
+# Protocolo Fácil 0.4
 
-Programa local para redactar, distribuir e imprimir escrituras sobre el papel de protocolo costarricense, en Mac, sin instalar nada.
+Aplicación de escritorio para redactar, distribuir e imprimir escrituras sobre el papel de protocolo costarricense. Para Windows y para Mac.
 
 Reconstrucción propia a partir de las funciones observadas en los componentes del instalador Windows 1.3.3. **No es una conversión binaria ni una réplica del programa original.** Todo el código fuente está incluido.
 
 ---
 
-## Abrir el programa
+## Instalación
 
-**Camino corto (un solo archivo):** abrí `dist/ProtocoloFacil-0.3.0.html` con doble clic. Es la aplicación entera en un archivo; no instala nada.
+### Windows
 
-**Camino con lanzador (recomendado para uso diario):**
+1. Ejecutá `Instalar-ProtocoloFacil-0.4.0.exe`.
+2. Windows SmartScreen va a advertir que el editor no está identificado: **Más información → Ejecutar de todas formas**. El instalador no lleva certificado de firma de código, que es de pago y anual.
+3. Elegí la carpeta y terminá. Quedan accesos directos en el escritorio y en el menú Inicio.
 
-1. Descomprimí `dist/ProtocoloFacil-Mac-0.3.0.zip` con Finder.
-2. Arrastrá `ProtocoloFacil.app` a Aplicaciones, o dejala en una carpeta permanente.
-3. Abrila. El lanzador copia la interfaz a `~/Library/Application Support/ProtocoloFacil/Interface` y la abre en Safari.
+No pide permisos de administrador: se instala para tu usuario. Se desinstala desde **Configuración → Aplicaciones**, y la desinstalación **no borra tus escrituras**.
 
-El lanzador no tiene firma Developer ID ni certificación de Apple. Si macOS bloquea su apertura, consultá las opciones para esa aplicación concreta en la guía oficial: <https://support.apple.com/es-es/guide/mac-help/mh40616/mac>. No hace falta desactivar la seguridad del equipo.
+### Mac
 
-> **Importante:** cada camino usa su propio almacenamiento. Elegí uno y quedate con él, o vas a ver libros distintos según cómo abriste el programa.
+1. Descomprimí el ZIP que corresponda a tu equipo:
+   - `...-mac-arm64-instalador.zip` para Mac con Apple Silicon (M1 en adelante).
+   - `...-mac-x64-instalador.zip` para Mac con procesador Intel.
+   Si no sabés cuál: menú Apple → Acerca de esta Mac.
+2. Doble clic en **Instalar en Mac.command**.
+3. Si macOS dice que no se puede abrir porque proviene de un desarrollador no identificado: clic secundario sobre el archivo → **Abrir** → **Abrir**. Eso autoriza ese archivo concreto y no cambia la configuración de seguridad del equipo.
+
+El instalador copia la aplicación a Aplicaciones y le quita la marca de cuarentena. No pide contraseña de administrador.
+
+La aplicación lleva **firma ad-hoc**, no firma Developer ID de Apple ni certificación. Sin la firma ad-hoc macOS no la ejecutaría en Apple Silicon; con ella funciona, pero Gatekeeper sigue advirtiendo en la primera apertura.
+
+### Sin instalar
+
+`dist/ProtocoloFacil-0.4.0.html` es la aplicación entera en un archivo que abre con doble clic en cualquier navegador. Sirve para probarla o para una máquina prestada. **Guarda en el navegador, no en archivos**: para uso diario conviene la aplicación.
+
+---
+
+## Dónde quedan tus datos
+
+La aplicación guarda en **archivos de verdad en tu disco**:
+
+| Sistema | Carpeta |
+|---|---|
+| Windows | `%APPDATA%\Protocolo Facil\` |
+| Mac | `~/Library/Application Support/Protocolo Facil/` |
+
+```
+datos.json           libros, escrituras, plantillas y perfil
+instantaneas.json    copias previas a cada operación irreversible
+respaldos/           copias fechadas, nunca sobrescritas (se guardan las 200 últimas)
+```
+
+Llegás ahí desde **Archivo → Abrir la carpeta de datos**, o desde el botón de la pantalla de inicio. Reinstalar o actualizar no toca esa carpeta. Podés incluirla en tu sistema de respaldos.
+
+La escritura es atómica: se escribe a un temporal y se renombra, de modo que un corte de energía no deja un archivo a medias.
+
+Aun así, **el respaldo que importa es el que está fuera de la máquina.** Usá Archivo → Respaldar y guardá el JSON donde conservás los respaldos del despacho.
 
 ---
 
@@ -28,9 +64,9 @@ El lanzador no tiene firma Developer ID ni certificación de Apple. Si macOS blo
 
 **Escrituras.** Número, fecha, hora, acto, otorgantes, estado, notas internas y texto. Posición inicial por folio, cara y renglón, con propuesta del siguiente renglón libre del tomo.
 
-**Distribución por folios.** El texto se reparte entre frente y vuelto recalculando el ancho útil de cada cara. Vista con zoom, impresión por rango de caras o filtrada por frente/vuelto, y guardado en PDF desde el diálogo de impresión de macOS.
+**Distribución por folios.** El texto se reparte entre frente y vuelto recalculando el ancho útil de cada cara. Vista con zoom, impresión por rango de caras o filtrada por frente/vuelto, y guardado en PDF con el tamaño exacto del papel.
 
-**Piezas notariales.** Razón de apertura del tomo, razón de cierre, razón de testimonio (distingue el primero de los ulteriores) y razón de entrelineados y testaduras, armada desde el marcado del texto.
+**Piezas notariales.** Razón de apertura del tomo, razón de cierre, razón de testimonio (distingue el primero de los ulteriores) y razón de entrelineados y testaduras.
 
 **Marcado notarial.** Escribí `«así»` lo entrelineado y `[[así]]` lo testado; el botón correspondiente arma la razón final.
 
@@ -44,8 +80,6 @@ El lanzador no tiene firma Developer ID ni certificación de Apple. Si macOS blo
 
 **Calibración.** Ancho, alto, renglones, separación, fuente y tamaño; márgenes y desplazamientos X/Y independientes para cada cara; hojas de prueba con guías que no se imprimen en las escrituras.
 
-**Respaldos.** JSON del conjunto completo, más un anillo de doce instantáneas internas accesibles desde Inicio. Los respaldos de las ediciones 0.1 y 0.2 se abren y se elevan automáticamente.
-
 ---
 
 ## Primera impresión
@@ -53,25 +87,27 @@ El lanzador no tiene firma Developer ID ni certificación de Apple. Si macOS blo
 1. En **Configurar impresión**, ingresá las medidas reales de tu papel y la cantidad de renglones. Medí del renglón uno al once y dividí entre diez para obtener la separación.
 2. Guardá el perfil. Las pruebas usan el perfil guardado, no los campos todavía sin guardar.
 3. Imprimí una prueba de frente y otra de vuelto **en papel común**.
-4. En el diálogo de Safari: tamaño de papel exacto, escala **100 %**, sin ajuste automático al área imprimible, sin encabezados ni pies del navegador.
+4. En el diálogo del sistema: tamaño de papel exacto, escala **100 %**, sin ajuste automático al área imprimible, sin encabezados ni pies.
 5. Compará con el papel real. X positivo mueve a la derecha; Y positivo mueve hacia abajo. Ajustá cada cara y repetí hasta que coincida.
-6. Para un PDF, elegí guardar como PDF en el mismo diálogo. El estado de la escritura no cambia al imprimir: marcá «Impresa» después de comprobar el resultado físico.
+6. El estado de la escritura no cambia al imprimir: marcá «Impresa» después de comprobar el resultado físico.
+
+**No uses papel de protocolo hasta completar este paso.** Esta entrega no se probó en una impresora física.
 
 ---
 
-## Guardado y respaldos
+## Atajos
 
-Los datos viven en el almacenamiento local del navegador. **No equivalen a archivos de protocolo en disco.** No uses navegación privada. Borrar los datos de Safari, cambiar de navegador o abrir la interfaz desde otra ubicación puede dejar inaccesible lo anterior.
-
-Antes de eliminar una escritura, restaurar un respaldo, sustituir un texto o cambiar el perfil, el programa guarda una instantánea interna y descarga una copia del estado actual. Comprobá que la descarga se complete: el navegador puede bloquearla.
-
-Si el navegador no permite guardar, el programa avisa y mantiene el trabajo en memoria. Descargá el JSON antes de cerrar.
-
-**Restaurar sustituye el conjunto completo; no combina libros.** No importa bases SQLite ni ZIP de Windows.
+| Atajo | Acción |
+|---|---|
+| `Ctrl/Cmd + N` | Nueva escritura |
+| `Ctrl/Cmd + S` | Guardar |
+| `Ctrl/Cmd + B` | Respaldar en un archivo |
+| `Ctrl/Cmd + P` | Imprimir |
+| `Ctrl/Cmd + Shift + P` | Guardar como PDF |
 
 ---
 
-## Diferencias con el programa Windows
+## Diferencias con el programa Windows original
 
 No se implementaron: sincronización web, licencias, servicios remotos, firma digital, auditoría remota, importación de SQLite, versiones históricas de escrituras, editor enriquecido, trazos libres, entrelineados dibujados sobre documentos ya impresos ni generación completa de testimonios sobre papel de seguridad. El estado «Firmada» es una anotación manual, no una firma electrónica. No se incluyen modelos jurídicos verificados: los de ejemplo son estructuras de trabajo con marcadores.
 
@@ -79,30 +115,41 @@ Estas limitaciones se declaran expresamente para que esta edición se use sin co
 
 ---
 
-## Código y pruebas
+## Código y construcción
 
 ```
-app/engine.js      núcleo de cálculo (sin navegador): geometría, paginación, letras, respaldos
-app/notarial.js    razones, testimonios, mapa de folios, índice, honorarios y timbres
-app/store.js       almacenamiento e instantáneas
-app/ui.js          interfaz
-app/index.html     estructura de las pantallas
-app/style.css      apariencia
-mac/               paquete .app y lanzador
-pruebas/           252 comprobaciones automáticas
-herramientas/      generador del archivo único
-construir.sh       pruebas + empaquetado completo
+app/                 interfaz compartida por la aplicación y la versión web
+  engine.js            núcleo de cálculo (sin navegador): geometría, paginación, letras
+  notarial.js          razones, mapa de folios, índice, honorarios y timbres
+  store.js             persistencia: archivos en la aplicación, navegador en la web
+  ui.js                controlador de la interfaz
+  index.html           estructura de las pantallas
+  style.css            apariencia
+escritorio/          aplicación Electron
+  src/main.js          proceso principal: archivos, menú, impresión, PDF
+  src/preload.js       puente aislado con la interfaz
+  mac/                 instalador de macOS y su LEEME
+  herramientas/        preparación de la interfaz y generación de iconos
+pruebas/             303 comprobaciones automáticas
+herramientas/        generador de la versión de un solo archivo
+construir-aplicacion.sh   aplicación e instaladores
+construir-web.sh          versión de un solo archivo, sin instalar
 ```
 
-Con Node instalado:
+Para construir hace falta Node y npm; además wine para el instalador de Windows desde Linux, y rcodesign para la firma ad-hoc de Mac. Para **usar** la aplicación no hace falta nada de eso.
 
 ```sh
+bash construir-aplicacion.sh        # aplicación e instaladores
+bash construir-aplicacion.sh win    # sólo Windows
+bash construir-aplicacion.sh mac    # sólo Mac
+bash construir-web.sh               # versión de un solo archivo
+
 node pruebas/engine.test.cjs
 node pruebas/notarial.test.cjs
 node pruebas/store.test.cjs
 node pruebas/paginacion.test.cjs
-
-bash construir.sh      # todo lo anterior y además arma dist/
+node pruebas/navegador.cjs dist/ProtocoloFacil-0.4.0.html   # navegador real
+node pruebas/aplicacion.cjs                                 # aplicación real
 ```
 
-El programa **no necesita Node para abrirse**. `VALIDACION.md` documenta qué se comprobó y qué queda pendiente. `GUIA-VIBECODING.md` explica cómo seguir mejorándolo sin editor de código. `PRD.md` contiene los requerimientos.
+`VALIDACION.md` documenta qué se comprobó y qué queda pendiente. `GUIA-VIBECODING.md` explica cómo seguir mejorándolo sin editor de código. `PRD.md` contiene los requerimientos.

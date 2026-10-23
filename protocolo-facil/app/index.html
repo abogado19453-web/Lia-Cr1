@@ -77,9 +77,18 @@
       <h3 class="blockTitle">Trabajo reciente</h3>
       <div id="recentDocs" class="recentList"></div>
 
-      <h3 class="blockTitle">Copias de seguridad de la sesión</h3>
-      <p class="muted small">Se guarda una instantánea antes de borrar, restaurar o sustituir texto. Viven en este navegador: el respaldo JSON sigue siendo el resguardo definitivo.</p>
+      <h3 class="blockTitle">Copias de seguridad</h3>
+      <p class="muted small">Se guarda una instantánea antes de borrar, restaurar o sustituir texto.</p>
       <div id="snapshotList" class="snapshotList"></div>
+
+      <div class="dataBox soloApp">
+        <div>
+          <strong>Tus datos están en archivos de esta carpeta</strong>
+          <code id="dataFolder"></code>
+          <small class="muted">Además de <code>datos.json</code>, cada operación irreversible deja una copia fechada en <code>respaldos/</code>. Podés copiar esa carpeta a tu sistema de respaldos.</small>
+        </div>
+        <button id="openDataFolder" class="ghost">Abrir la carpeta</button>
+      </div>
     </section>
 
     <!-- ---------------- Escrituras ---------------- -->
@@ -110,7 +119,7 @@
             <button id="emptyNew">Crear escritura</button>
           </div>
 
-          <form id="docForm" autocomplete="off" onsubmit="return false">
+          <form id="docForm" autocomplete="off">
             <div class="docHeader">
               <h2 id="docHeading">Escritura</h2>
               <span id="docStatusBadge" class="statusPill">Borrador</span>
@@ -177,8 +186,8 @@
             </label>
 
             <div class="docActions">
-              <button id="save">Guardar</button>
-              <button id="goPreview" class="secondary">Revisar folios</button>
+              <button id="save" type="button">Guardar</button>
+              <button id="goPreview" type="button" class="secondary">Revisar folios</button>
               <button id="importText" type="button" class="ghost">Importar TXT</button>
               <input type="file" id="textFile" accept=".txt,text/plain" hidden>
               <button id="exportText" type="button" class="ghost">Exportar TXT</button>
@@ -219,6 +228,7 @@
           </select>
         </label>
         <button id="print">Imprimir</button>
+        <button id="savePDF" class="secondary soloApp">Guardar como PDF</button>
         <button id="previewCalibrate" class="ghost">Calibración</button>
       </div>
 
@@ -229,7 +239,7 @@
     <section id="tomo" class="tab">
       <div class="card">
         <h2>Datos del tomo</h2>
-        <form id="tomoForm" class="grid three" onsubmit="return false">
+        <form id="tomoForm" class="grid three">
           <label>Número de tomo<input id="tomoNumber" type="number" min="1" step="1"></label>
           <label>Folios del tomo<input id="tomoFolios" type="number" min="1" step="1"></label>
           <label>Folios ocupados<input id="tomoUsed" type="text" readonly></label>
@@ -432,6 +442,20 @@
       <button id="textModalCopy" class="ghost">Copiar</button>
       <button id="closeTextModal" class="ghost">Cerrar</button>
     </div>
+  </div>
+</div>
+
+<div id="askModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="askTitle" hidden>
+  <div class="modalBox">
+    <h2 id="askTitle">Dato</h2>
+    <form id="askForm">
+      <label id="askLabel" for="askValue">Valor<input id="askValue" type="text" autocomplete="off"></label>
+      <p id="askHint" class="muted small"></p>
+      <div class="rowActions">
+        <button id="askAccept" type="submit">Aceptar</button>
+        <button id="askCancel" type="button" class="ghost">Cancelar</button>
+      </div>
+    </form>
   </div>
 </div>
 

@@ -94,4 +94,49 @@ test('un almacenamiento lleno marca la sesión como no escribible', () => {
   assert.strictEqual(store.isWritable(), false);
 });
 
+/* ---------------- Aplicación de escritorio ---------------- */
+
+/** Simula el puente nativo: el mismo trato que localStorage, sobre archivos. */
+function conPuenteNativo(fn) {
+  const archivos = fakeStorage();
+  globalThis.pfNativo = {
+    almacen: {
+      getItem: k => archivos.getItem(k),
+      setItem: (k, v) => archivos.setItem(k, v),
+      removeItem: k => archivos.removeItem(k)
+    }
+  };
+  try { return fn(archivos); } finally { delete globalThis.pfNativo; }
+}
+
+test('con el puente nativo se escribe en los archivos de la aplicación', () => {
+  conPuenteNativo(archivos => {
+    const store = PFStore.createStore();
+    assert.strictEqual(store.isNative(), true);
+    const state = PF.initialState();
+    state.books[0].name = 'Tomo nativo';
+    assert.strictEqual(store.save(state), true);
+    assert.ok(archivos.data.has('datos.json'), 'debió escribir datos.json');
+    assert.ok(!archivos.data.has(PFStore.KEY), 'no debe usar la clave del navegador');
+    assert.strictEqual(PFStore.createStore().load().state.books[0].name, 'Tomo nativo');
+  });
+});
+
+test('las instantáneas nativas van a su propio archivo', () => {
+  conPuenteNativo(archivos => {
+    const store = PFStore.createStore();
+    store.snapshot(PF.initialState(), 'Antes de borrar');
+    assert.ok(archivos.data.has('instantaneas.json'));
+    assert.strictEqual(store.snapshots()[0].label, 'Antes de borrar');
+  });
+});
+
+test('sin puente nativo se sigue usando el almacenamiento del navegador', () => {
+  const storage = fakeStorage();
+  const store = PFStore.createStore(storage);
+  assert.strictEqual(store.isNative(), false);
+  store.save(PF.initialState());
+  assert.ok(storage.data.has(PFStore.KEY));
+});
+
 console.log(passed + ' pruebas superadas en store.js');
