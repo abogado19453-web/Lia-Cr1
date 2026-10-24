@@ -7,13 +7,15 @@
 #
 # Resultado en dist-app/:
 #   Instalar-ProtocoloFacil-<version>.exe              instalador de Windows
-#   ProtocoloFacil-<version>-mac-arm64-instalador.zip  Mac con Apple Silicon
-#   ProtocoloFacil-<version>-mac-x64-instalador.zip    Mac con procesador Intel
+#   ProtocoloFacil-<version>-mac-arm64.dmg             Mac con Apple Silicon
+#   ProtocoloFacil-<version>-mac-x64.dmg               Mac con procesador Intel
+#   ProtocoloFacil-<version>-mac-<arq>-instalador.zip  lo mismo, más liviano
 #
 # Requisitos para construir (no para usar la aplicación):
 #   Node y npm                      siempre
 #   wine                            sólo para el instalador de Windows desde Linux
 #   rcodesign (apple-codesign)      sólo para firmar ad-hoc los paquetes de Mac
+#   xorriso                         sólo para armar los .dmg
 #   python3 con Pillow              sólo para regenerar los iconos
 set -euo pipefail
 
@@ -36,6 +38,7 @@ for f in app/engine.js app/notarial.js app/store.js app/ui.js \
 done
 bash -n "$APP/mac/Instalar en Mac.command"
 bash -n "$APP/herramientas/empaquetar-mac.sh"
+bash -n "$APP/herramientas/empaquetar-dmg.sh"
 
 echo "==> Pruebas del núcleo"
 node pruebas/engine.test.cjs
@@ -65,8 +68,13 @@ construir_mac() {
   ( cd "$APP" && npx electron-builder --mac --x64 --arm64 --publish never )
   if command -v rcodesign >/dev/null 2>&1 || command -v codesign >/dev/null 2>&1; then
     bash "$APP/herramientas/empaquetar-mac.sh" dist-app "$VERSION"
+    if command -v xorriso >/dev/null 2>&1; then
+      bash "$APP/herramientas/empaquetar-dmg.sh" dist-app "$VERSION"
+    else
+      echo "   sin xorriso: no se arman los .dmg, queda sólo el ZIP"
+    fi
   else
-    echo "   sin rcodesign: los ZIP quedan SIN FIRMA y no abrirán en Apple Silicon"
+    echo "   sin rcodesign: los paquetes quedan SIN FIRMA y no abrirán en Apple Silicon"
   fi
 }
 
@@ -79,7 +87,7 @@ esac
 
 echo
 echo "Entregables en dist-app/:"
-ls -lh dist-app/*.exe dist-app/*instalador.zip 2>/dev/null | sed 's/^/   /' || true
+ls -lh dist-app/*.exe dist-app/*.dmg dist-app/*instalador.zip 2>/dev/null | sed 's/^/   /' || true
 echo
 echo "Ninguno lleva firma Developer ID de Apple ni certificado de Windows:"
 echo "SmartScreen y Gatekeeper van a advertir en la primera apertura."

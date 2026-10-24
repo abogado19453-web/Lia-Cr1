@@ -30,7 +30,9 @@ respaldos/           copias fechadas que nunca se sobrescriben
 ### Instaladores
 
 - **Windows**: instalador `.exe` (NSIS) en español, con elección de carpeta, accesos directos en el escritorio y en el menú Inicio, y desinstalador registrado en Agregar o quitar programas. No requiere permisos de administrador y no borra los datos al desinstalar.
-- **Mac**: paquetes para Apple Silicon y para Intel, cada uno con su script `Instalar en Mac.command`, que copia la aplicación a Aplicaciones y le quita la marca de cuarentena.
+- **Mac**: imagen de disco `.dmg` por arquitectura, con la aplicación y el acceso a Aplicaciones para arrastrar una sobre el otro, como es habitual en macOS. La imagen va en formato ISO 9660 con extensiones Rock Ridge, que conservan permisos y enlaces simbólicos; es el mismo formato que `hdiutil` llama UDTO y macOS lo monta igual. No se usa HFS+ porque escribir una imagen HFS+ exige montarla y el equipo de construcción no tiene ese sistema de archivos.
+- **Mac, alternativa liviana**: los mismos paquetes en ZIP con el script `Instalar en Mac.command`, que copia a Aplicaciones y quita la marca de cuarentena. Pesan menos de la mitad que el `.dmg`, porque la imagen de disco no se comprime.
+- El paquete se entrega **sólo con los idiomas español e inglés** en lugar de las cincuenta y cinco traducciones de Chromium: unos 50 MB menos por arquitectura.
 - Los paquetes de Mac llevan **firma ad-hoc**: sin ella macOS no ejecuta la aplicación en Apple Silicon. No sustituye a la firma Developer ID ni a la certificación de Apple, que exigen cuenta de desarrollador y un Mac.
 - Icono propio en los tres formatos (PNG, ICO e ICNS), generado desde un único archivo fuente.
 

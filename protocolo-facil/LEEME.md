@@ -18,14 +18,22 @@ No pide permisos de administrador: se instala para tu usuario. Se desinstala des
 
 ### Mac
 
-1. Descomprimí el ZIP que corresponda a tu equipo:
-   - `...-mac-arm64-instalador.zip` para Mac con Apple Silicon (M1 en adelante).
-   - `...-mac-x64-instalador.zip` para Mac con procesador Intel.
-   Si no sabés cuál: menú Apple → Acerca de esta Mac.
-2. Doble clic en **Instalar en Mac.command**.
-3. Si macOS dice que no se puede abrir porque proviene de un desarrollador no identificado: clic secundario sobre el archivo → **Abrir** → **Abrir**. Eso autoriza ese archivo concreto y no cambia la configuración de seguridad del equipo.
+Elegí el archivo según tu equipo (menú Apple → Acerca de esta Mac):
 
-El instalador copia la aplicación a Aplicaciones y le quita la marca de cuarentena. No pide contraseña de administrador.
+- **`...-mac-arm64.dmg`** — Mac con Apple Silicon (M1 en adelante).
+- **`...-mac-x64.dmg`** — Mac con procesador Intel.
+
+1. Doble clic en el `.dmg`. Se abre una ventana con la aplicación y un acceso a Aplicaciones.
+2. Arrastrá **Protocolo Facil** sobre **Aplicaciones**.
+3. Abrila desde Aplicaciones con **clic secundario → Abrir → Abrir**. Hace falta sólo la primera vez: autoriza esa aplicación concreta sin cambiar la configuración de seguridad del equipo.
+
+Si macOS insiste en bloquearla, abrí la Terminal y ejecutá:
+
+```sh
+xattr -dr com.apple.quarantine "/Applications/Protocolo Facil.app"
+```
+
+**Alternativa más liviana:** los archivos `...-instalador.zip` contienen lo mismo y pesan menos de la mitad. Descomprimís y hacés doble clic en `Instalar en Mac.command`, que copia la aplicación a Aplicaciones y le quita la marca de cuarentena por vos.
 
 La aplicación lleva **firma ad-hoc**, no firma Developer ID de Apple ni certificación. Sin la firma ad-hoc macOS no la ejecutaría en Apple Silicon; con ella funciona, pero Gatekeeper sigue advirtiendo en la primera apertura.
 

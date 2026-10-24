@@ -1,17 +1,25 @@
 PROTOCOLO FÁCIL — INSTALACIÓN EN MAC
 ====================================
 
-PASOS
+PASOS — SI ABRISTE UN .DMG
+
+1. Arrastrá «Protocolo Facil» sobre «Aplicaciones».
+2. Abrila desde Aplicaciones con clic secundario → Abrir → Abrir.
+   Hace falta sólo la primera vez.
+3. Si macOS insiste en bloquearla, abrí la Terminal y ejecutá:
+
+   xattr -dr com.apple.quarantine "/Applications/Protocolo Facil.app"
+
+
+PASOS — SI DESCOMPRIMISTE UN .ZIP
 
 1. Descomprimí este ZIP completo (doble clic en Finder).
-2. Doble clic en «Instalar en Mac.command».
-3. Si macOS pregunta, elegí Abrir. El instalador copia la aplicación a
-   la carpeta Aplicaciones y le quita la marca de cuarentena.
-
-Si al hacer doble clic macOS dice que no se puede abrir porque proviene
-de un desarrollador no identificado: clic secundario sobre el archivo →
-Abrir → Abrir. Eso autoriza ese archivo concreto, sin tocar la
-configuración de seguridad del equipo.
+2. Doble clic en «Instalar en Mac.command». Copia la aplicación a
+   Aplicaciones y le quita la marca de cuarentena por vos.
+3. Si macOS dice que no se puede abrir porque proviene de un
+   desarrollador no identificado: clic secundario sobre el archivo →
+   Abrir → Abrir. Eso autoriza ese archivo concreto, sin tocar la
+   configuración de seguridad del equipo.
 
 
 POR QUÉ APARECE ESA ADVERTENCIA

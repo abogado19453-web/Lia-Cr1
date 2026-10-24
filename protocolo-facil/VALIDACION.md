@@ -62,7 +62,8 @@ El PDF generado midió **216,2 × 330,2 mm** (medido con pypdf) frente a 216 × 
 ## 3. Verificación de los entregables
 
 - **Windows**: `Instalar-ProtocoloFacil-0.4.0.exe` se identifica como `PE32 executable (GUI) Intel 80386, for MS Windows, Nullsoft Installer self-extracting archive`. Incluye desinstalador generado, icono y metadatos de versión incrustados.
-- **Mac**: los dos paquetes llevan **firma ad-hoc comprobada** (`CodeSignatureFlags(ADHOC)`, identificador `cr.protocolofacil.app`) en el ejecutable principal y en los marcos anidados. Los ZIP conservan los enlaces simbólicos de los marcos de Electron y el bit de ejecución del instalador.
+- **Mac**: los dos paquetes llevan **firma ad-hoc comprobada** (`CodeSignatureFlags(ADHOC)`, identificador `cr.protocolofacil.app`) en el ejecutable principal y en los marcos anidados. El empaquetador del `.dmg` rechaza armar la imagen si la firma no está puesta. Los ZIP conservan los enlaces simbólicos de los marcos de Electron y el bit de ejecución del instalador.
+- **Las imágenes `.dmg` no se montaron**: no hay macOS en el equipo de construcción. Se verificó que la imagen tiene la estructura ISO 9660 con Rock Ridge y que contiene la aplicación, el enlace a `/Applications` y el LEEME. Que macOS monte este formato es un comportamiento conocido de `hdiutil`, no una comprobación hecha acá. Por eso se entrega también el ZIP, cuyo mecanismo de descompresión sí es el nativo del sistema.
 
 ---
 
@@ -77,17 +78,18 @@ El PDF generado midió **216,2 × 330,2 mm** (medido con pypdf) frente a 216 × 
 4. Diálogo de impresión y escala real del controlador.
 
 ### Mac
-5. Que Gatekeeper permita abrir el `.command` y que la firma ad-hoc baste en Apple Silicon.
-6. Copia a Aplicaciones y apertura posterior sin advertencias.
-7. Carpeta de datos en `~/Library/Application Support` y persistencia entre sesiones.
-8. Diálogo de impresión de macOS.
+5. **Que el `.dmg` monte en Finder.** Si no montara, el ZIP es la vía alterna.
+6. Que Gatekeeper permita abrir la aplicación y que la firma ad-hoc baste en Apple Silicon.
+7. Copia a Aplicaciones y apertura posterior sin advertencias.
+8. Carpeta de datos en `~/Library/Application Support` y persistencia entre sesiones.
+9. Diálogo de impresión de macOS.
 
 ### Ambos
-9. Tamaño físico del papel y coincidencia con los renglones impresos.
-10. Márgenes efectivos, orientación y orden de frente y vuelto en impresión manual.
-11. Medición de las fuentes del equipo, que puede alterar el corte de renglones.
+10. Tamaño físico del papel y coincidencia con los renglones impresos.
+11. Márgenes efectivos, orientación y orden de frente y vuelto en impresión manual.
+12. Medición de las fuentes del equipo, que puede alterar el corte de renglones.
 
-**Hasta completar el punto 9, no uses papel de protocolo: calibrá en papel común.**
+**Hasta completar el punto 10, no uses papel de protocolo: calibrá en papel común.**
 
 ### Firma de código
 Ninguno de los entregables lleva firma de editor: no hay certificado de firma de código para Windows ni firma Developer ID con certificación de Apple. Ambos requieren cuentas de pago, y la de Apple además un Mac para firmar y enviar a certificar. La firma ad-hoc de los paquetes de Mac es lo que permite que la aplicación se ejecute en Apple Silicon; no evita la advertencia de Gatekeeper.
