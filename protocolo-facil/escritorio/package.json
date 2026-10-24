@@ -1,0 +1,100 @@
+{
+  "name": "protocolo-facil",
+  "productName": "Protocolo Fácil",
+  "version": "0.4.0",
+  "description": "Redacción, distribución e impresión de escrituras sobre papel de protocolo costarricense",
+  "author": "Protocolo Fácil",
+  "license": "UNLICENSED",
+  "private": true,
+  "main": "src/main.js",
+  "scripts": {
+    "preparar": "node herramientas/preparar.cjs",
+    "iconos": "python3 herramientas/icono.py build",
+    "start": "npm run preparar && electron .",
+    "dist:win": "npm run preparar && electron-builder --win --x64 --publish never",
+    "dist:mac": "npm run preparar && electron-builder --mac --x64 --arm64 --publish never",
+    "dist": "npm run preparar && electron-builder --win --mac --publish never"
+  },
+  "devDependencies": {
+    "electron": "38.0.0",
+    "electron-builder": "25.1.8"
+  },
+  "build": {
+    "appId": "cr.protocolofacil.app",
+    "productName": "Protocolo Facil",
+    "copyright": "Protocolo Fácil",
+    "directories": {
+      "buildResources": "build",
+      "output": "../dist-app"
+    },
+    "files": [
+      "src/**/*",
+      "interfaz/**/*",
+      "package.json"
+    ],
+    "extraMetadata": {
+      "name": "protocolo-facil"
+    },
+    "compression": "maximum",
+    "artifactName": "ProtocoloFacil-${version}-${os}-${arch}.${ext}",
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.ico",
+      "legalTrademarks": ""
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Protocolo Fácil",
+      "artifactName": "Instalar-ProtocoloFacil-${version}.${ext}",
+      "uninstallDisplayName": "Protocolo Fácil ${version}",
+      "deleteAppDataOnUninstall": false,
+      "installerLanguages": [
+        "es_ES"
+      ],
+      "language": "1034"
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dir",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
+      "icon": "build/icon.icns",
+      "category": "public.app-category.productivity",
+      "darkModeSupport": false,
+      "identity": null
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "icon": "build/icon.png",
+      "category": "Office"
+    },
+    "publish": null,
+    "generateUpdatesFilesForAllChannels": false,
+    "electronLanguages": [
+      "es",
+      "en"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/abogado19453-web/Lia-Cr1"
+  }
+}

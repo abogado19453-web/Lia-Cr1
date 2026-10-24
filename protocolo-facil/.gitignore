@@ -1,0 +1,6 @@
+# Dependencias y salidas de construcción
+escritorio/node_modules/
+escritorio/interfaz/
+dist-app/
+dist/ProtocoloFacil-Mac/
+escritorio/build/icono-512.png
